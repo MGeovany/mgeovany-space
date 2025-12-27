@@ -10,7 +10,8 @@
     "format": "prettier --write './**/*{.ts,.tsx,.js,.json,.md,.yml}'"
   },
   "dependencies": {
-    "@auth0/nextjs-auth0": "^3.5.0",
+    "@supabase/supabase-js": "^2.39.0",
+    "@supabase/ssr": "^0.1.0",
     "@headlessui/react": "^1.4.1",
     "@mantine/core": "^7.12.2",
     "@mantine/hooks": "^7.12.2",

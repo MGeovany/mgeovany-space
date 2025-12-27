@@ -27,8 +27,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "src/components/sidebar-content/index.tsx",
-    "src/app/writing/[slug].tsx",
-    "src/app/api/auth/[auth0]/route.js"
+    "src/app/writing/[slug].tsx"
   ],
   "exclude": ["node_modules"]
 }
