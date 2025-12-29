@@ -4,7 +4,7 @@ import axios from 'axios'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 
-import { API_URL, BookmarkTag } from '@/constants'
+import { BookmarkTag } from '@/constants'
 
 interface BookmarkFormProps {
   bookmark?: Bookmark // Optional for editing case
@@ -42,7 +42,7 @@ const BookmarkForm = ({ bookmark, onClose }: BookmarkFormProps) => {
       if (bookmark) {
         // Editing case
         const response = await axios.put(
-          `${API_URL}/bookmark/${bookmark.id}`,
+          `/api/bookmarks/${bookmark.id}`,
           {
             title,
             url,
@@ -63,7 +63,7 @@ const BookmarkForm = ({ bookmark, onClose }: BookmarkFormProps) => {
       } else {
         // Adding case
         const response = await axios.post(
-          `${API_URL}/bookmark`,
+          `/api/bookmarks`,
           {
             title,
             url,

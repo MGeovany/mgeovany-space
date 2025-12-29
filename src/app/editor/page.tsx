@@ -4,36 +4,29 @@ import axios from 'axios'
 import { formatDistanceToNowStrict } from 'date-fns'
 import {
   Archive,
-  Bold,
-  Code,
+  Bookmark,
+  Check,
   DoorOpen,
   ExternalLink,
-  Eye,
-  Italic,
+  FileText,
+  FolderKanban,
   Link,
-  List,
-  ListOrdered,
   Loader2,
-  Lock,
-  Maximize2,
-  Minimize2,
   MoreVertical,
-  Plus,
-  Quote,
   RefreshCw,
-  Save,
   Search,
   Trash2,
 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 
-import { Button, GhostButton, PrimaryButton, Size } from '@/components/button'
+import { Button, PrimaryButton, Size } from '@/components/button'
 import { Icons } from '@/components/icons'
-import { MarkdownRenderer } from '@/components/markdown-renderer'
 import { useSupabaseUser } from '@/hooks/useSupabaseUser'
 import { isAllowedEditorEmail } from '@/lib/editor/allowed'
 import { createClient } from '@/lib/supabase/client'
+
+type TabType = 'blogs' | 'bookmarks' | 'projects'
 
 type PostStatus = 'draft' | 'published' | 'archived'
 
@@ -47,13 +40,37 @@ type PostListItem = {
   published_at: string | null
   updated_at: string
   created_at: string
+  url?: string | null
 }
 
-type PostDetail = PostListItem & {
-  content: string | null
-  content_html: string | null
-  url: string | null
-  canonical_url: string | null
+interface GoogleBookmark {
+  id: string
+  title: string
+  url: string
+  folder_path: string | null
+  add_date: number | null
+  icon_url: string | null
+  created_at: string
+  updated_at: string
+}
+
+interface Bookmark {
+  id: number
+  title: string
+  description: string
+  url: string
+  tag: string
+  createdAt: string
+  updatedAt: string
+}
+
+interface Project {
+  id: number
+  title: string
+  description: string
+  url: string
+  createdAt: string
+  updatedAt: string
 }
 
 // Helper to get auth headers
@@ -67,432 +84,311 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
   return headers
 }
 
-// API service functions - Single Responsibility Principle
-async function fetchPostsList(
-  status: PostStatus,
-  query?: string
-): Promise<PostListItem[]> {
-  const params = new URLSearchParams()
-  params.set('status', status)
-  if (query?.trim()) params.set('q', query.trim())
-
-  const authHeaders = await getAuthHeaders()
-  const response = await axios.get<{ data: PostListItem[] }>(
-    `/api/editor/posts?${params.toString()}`,
-    {
-      withCredentials: true,
-      headers: authHeaders,
-    }
-  )
-  return response.data.data ?? []
-}
-
-async function fetchPostDetail(id: string): Promise<PostDetail> {
-  const authHeaders = await getAuthHeaders()
-  const response = await axios.get<{ data: PostDetail }>(
-    `/api/editor/posts/${id}`,
-    {
-      withCredentials: true,
-      headers: authHeaders,
-    }
-  )
-  return response.data.data
-}
-
-async function createNewPost(title: string): Promise<PostListItem> {
-  const authHeaders = await getAuthHeaders()
-  const response = await axios.post<{ data: PostListItem }>(
-    '/api/editor/posts',
-    { title },
-    {
-      withCredentials: true,
-      headers: authHeaders,
-    }
-  )
-  return response.data.data
-}
-
-async function updatePost(
-  id: string,
-  patch: Partial<Pick<PostDetail, 'title' | 'excerpt' | 'content' | 'status'>>
-): Promise<PostDetail> {
-  const authHeaders = await getAuthHeaders()
-  const response = await axios.patch<{ data: PostDetail }>(
-    `/api/editor/posts/${id}`,
-    patch,
-    {
-      withCredentials: true,
-      headers: authHeaders,
-    }
-  )
-  return response.data.data
-}
-
-async function deletePost(id: string): Promise<void> {
-  const authHeaders = await getAuthHeaders()
-  await axios.delete(`/api/editor/posts/${id}`, {
-    withCredentials: true,
-    headers: authHeaders,
-  })
-}
-
-async function archivePost(id: string): Promise<PostDetail> {
-  return updatePost(id, { status: 'archived' })
-}
-
-function StatusTabs({
-  value,
-  onChange,
-}: {
-  value: PostStatus
-  onChange: (v: PostStatus) => void
-}) {
-  const options: { label: string; value: PostStatus }[] = [
-    { label: 'Drafts', value: 'draft' },
-    { label: 'Published', value: 'published' },
-    { label: 'Archived', value: 'archived' },
-  ]
-  return (
-    <div className="flex items-center rounded-lg border border-neutral-800 bg-neutral-900 p-1">
-      {options.map((opt) => {
-        const active = value === opt.value
-        return (
-          <button
-            key={opt.value}
-            onClick={() => onChange(opt.value)}
-            className={[
-              'rounded-md px-3 py-1.5 text-xs font-semibold transition-colors',
-              active
-                ? 'bg-neutral-800 text-white'
-                : 'text-neutral-400 hover:text-neutral-300',
-            ].join(' ')}
-          >
-            {opt.label}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-function ToolbarButton({
-  onClick,
-  active,
-  children,
-  title,
-}: {
-  onClick: () => void
-  active?: boolean
-  children: React.ReactNode
-  title?: string
-}) {
-  return (
-    <button
-      onClick={onClick}
-      title={title}
-      className={[
-        'flex h-7 w-7 items-center justify-center rounded transition-colors',
-        active
-          ? 'bg-neutral-700 text-white'
-          : 'text-neutral-400 hover:bg-neutral-800 hover:text-white',
-      ].join(' ')}
-    >
-      {children}
-    </button>
-  )
-}
-
-function FormatToolbar({
-  textareaRef,
-  onFormat,
-}: {
-  textareaRef: React.RefObject<HTMLTextAreaElement>
-  onFormat: (format: string) => void
-}) {
-  const handleFormat = (format: string) => {
-    if (!textareaRef.current) return
-    const textarea = textareaRef.current
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selectedText = textarea.value.substring(start, end)
-    const before = textarea.value.substring(0, start)
-    const after = textarea.value.substring(end)
-
-    let replacement = ''
-    switch (format) {
-      case 'bold':
-        replacement = `**${selectedText || 'bold text'}**`
-        break
-      case 'italic':
-        replacement = `*${selectedText || 'italic text'}*`
-        break
-      case 'code':
-        replacement = `\`${selectedText || 'code'}\``
-        break
-      case 'quote':
-        replacement = `> ${selectedText || 'quote'}`
-        break
-      case 'link':
-        replacement = `[${selectedText || 'link text'}](url)`
-        break
-      case 'ul':
-        replacement = selectedText
-          ? selectedText
-              .split('\n')
-              .map((line) => `- ${line}`)
-              .join('\n')
-          : '- '
-        break
-      case 'ol':
-        replacement = selectedText
-          ? selectedText
-              .split('\n')
-              .map((line, i) => `${i + 1}. ${line}`)
-              .join('\n')
-          : '1. '
-        break
-    }
-
-    const newValue = before + replacement + after
-    textarea.value = newValue
-    textarea.focus()
-    const newCursor = start + replacement.length
-    textarea.setSelectionRange(newCursor, newCursor)
-    onFormat(newValue)
-  }
-
-  return (
-    <div className="flex items-center gap-1 rounded-lg border border-neutral-800 bg-neutral-900 p-1">
-      <ToolbarButton onClick={() => handleFormat('bold')} title="Bold (Ctrl+B)">
-        <Bold size={16} />
-      </ToolbarButton>
-      <ToolbarButton
-        onClick={() => handleFormat('italic')}
-        title="Italic (Ctrl+I)"
-      >
-        <Italic size={16} />
-      </ToolbarButton>
-      <div className="h-4 w-px bg-neutral-700" />
-      <ToolbarButton onClick={() => handleFormat('code')} title="Code">
-        <Code size={16} />
-      </ToolbarButton>
-      <ToolbarButton onClick={() => handleFormat('quote')} title="Quote">
-        <Quote size={16} />
-      </ToolbarButton>
-      <div className="h-4 w-px bg-neutral-700" />
-      <ToolbarButton onClick={() => handleFormat('link')} title="Link">
-        <Link size={16} />
-      </ToolbarButton>
-      <div className="h-4 w-px bg-neutral-700" />
-      <ToolbarButton onClick={() => handleFormat('ul')} title="Bullet List">
-        <List size={16} />
-      </ToolbarButton>
-      <ToolbarButton onClick={() => handleFormat('ol')} title="Numbered List">
-        <ListOrdered size={16} />
-      </ToolbarButton>
-    </div>
-  )
-}
-
 export default function EditorPage() {
-  const supabase = useMemo(() => createClient(), [])
   const { user, loading } = useSupabaseUser()
-
   const email = user?.email ?? null
   const allowed = isAllowedEditorEmail(email)
 
-  const [status, setStatus] = useState<PostStatus>('draft')
+  const [activeTab, setActiveTab] = useState<TabType>('blogs')
   const [query, setQuery] = useState('')
-  const [listLoading, setListLoading] = useState(false)
-  const [items, setItems] = useState<PostListItem[]>([])
 
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [detailLoading, setDetailLoading] = useState(false)
-  const [detail, setDetail] = useState<PostDetail | null>(null)
-
-  const [showCreate, setShowCreate] = useState(false)
-  const [createLoading, setCreateLoading] = useState(false)
-  const [newTitle, setNewTitle] = useState('')
-
-  const [saving, setSaving] = useState(false)
-  const [focusMode, setFocusMode] = useState(false)
+  // Blogs state
+  const [blogStatus, setBlogStatus] = useState<PostStatus>('published')
+  const [blogs, setBlogs] = useState<PostListItem[]>([])
+  const [blogsLoading, setBlogsLoading] = useState(false)
   const [showMenuForId, setShowMenuForId] = useState<string | null>(null)
+  const [selectedBlogs, setSelectedBlogs] = useState<Set<string>>(new Set())
+
+  // Bookmarks state
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>([])
+  const [googleBookmarks, setGoogleBookmarks] = useState<GoogleBookmark[]>([])
+  const [bookmarksLoading, setBookmarksLoading] = useState(false)
+  const [showBookmarkMenuForId, setShowBookmarkMenuForId] = useState<
+    string | null
+  >(null)
+  const [selectedBookmarks, setSelectedBookmarks] = useState<Set<string>>(
+    new Set()
+  )
+  const [selectedGoogleBookmarks, setSelectedGoogleBookmarks] = useState<
+    Set<string>
+  >(new Set())
+
+  // Projects state
+  const [projects, setProjects] = useState<Project[]>([])
+  const [projectsLoading, setProjectsLoading] = useState(false)
+  const [selectedProjects, setSelectedProjects] = useState<Set<string>>(
+    new Set()
+  )
+
+  // Sync states
   const [syncingMedium, setSyncingMedium] = useState(false)
   const [syncingDevto, setSyncingDevto] = useState(false)
-  const contentTextareaRef = useRef<HTMLTextAreaElement>(null)
+  const [syncingBookmarks, setSyncingBookmarks] = useState(false)
 
   async function signInWithGoogle() {
-    const redirectTo = `${window.location.origin}/editor`
+    const supabase = createClient()
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo },
+      options: {
+        redirectTo: `${window.location.origin}/editor`,
+      },
     })
-    if (error) toast.error(`[Editor] Login error: ${error.message}`)
+    if (error) {
+      toast.error(`[Editor] Sign in failed: ${error.message}`)
+    }
   }
 
   async function signOut() {
+    const supabase = createClient()
     await supabase.auth.signOut()
-    setSelectedId(null)
-    setDetail(null)
+    window.location.reload()
   }
 
-  async function loadList(nextStatus = status, nextQuery = query) {
-    setListLoading(true)
+  async function loadBlogs() {
+    setBlogsLoading(true)
     try {
-      const posts = await fetchPostsList(nextStatus, nextQuery)
-      setItems(posts)
-      if (posts.length && !selectedId) {
-        setSelectedId(posts[0].id)
-      }
-    } catch (error: any) {
-      console.error(error, 'error loading posts')
-      const errorMessage =
-        error?.response?.data?.error ?? error?.message ?? 'Unknown error'
-      toast.error(`[Editor] Error loading posts: ${errorMessage}`)
-    } finally {
-      setListLoading(false)
-    }
-  }
+      const authHeaders = await getAuthHeaders()
+      const params = new URLSearchParams()
+      params.set('status', blogStatus)
+      if (query.trim()) params.set('q', query.trim())
 
-  async function loadDetail(id: string) {
-    setDetailLoading(true)
-    try {
-      const post = await fetchPostDetail(id)
-      setDetail(post)
-    } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.error ?? error?.message ?? 'Unknown error'
-      toast.error(`[Editor] Error loading post: ${errorMessage}`)
-      setDetail(null)
-    } finally {
-      setDetailLoading(false)
-    }
-  }
-
-  async function createPost() {
-    const title = newTitle.trim()
-    if (!title) return
-    setCreateLoading(true)
-    try {
-      const newPost = await createNewPost(title)
-      setNewTitle('')
-      setStatus('draft')
-      await loadList('draft', query)
-      setSelectedId(newPost.id)
-      toast.success('[Editor] Draft created successfully')
-    } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.error ?? error?.message ?? 'Unknown error'
-      toast.error(`[Editor] Could not create draft: ${errorMessage}`)
-    } finally {
-      setCreateLoading(false)
-      setShowCreate(false)
-    }
-  }
-
-  async function savePatch(
-    patch: Partial<Pick<PostDetail, 'title' | 'excerpt' | 'content' | 'status'>>
-  ) {
-    if (!detail?.id) return
-    setSaving(true)
-    try {
-      const updatedPost = await updatePost(detail.id, patch)
-      setDetail(updatedPost)
-      await loadList(status, query)
-      // toast.success('[Editor] Changes saved successfully')
-    } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.error ?? error?.message ?? 'Unknown error'
-      toast.error(`[Editor] Could not save: ${errorMessage}`)
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function handleSave(asStatus: 'draft' | 'published') {
-    if (!detail?.id) return
-    setSaving(true)
-    try {
-      const updatedPost = await updatePost(detail.id, { status: asStatus })
-      setDetail(updatedPost)
-      await loadList(asStatus, query)
-      toast.success(
-        `[Editor] Post ${asStatus === 'published' ? 'published' : 'saved as draft'} successfully`
+      const response = await axios.get<{ data: PostListItem[] }>(
+        `/api/editor/posts?${params.toString()}`,
+        {
+          withCredentials: true,
+          headers: authHeaders,
+        }
       )
+      setBlogs(response.data.data ?? [])
     } catch (error: any) {
       const errorMessage =
         error?.response?.data?.error ?? error?.message ?? 'Unknown error'
-      toast.error(`[Editor] Could not save: ${errorMessage}`)
+      toast.error(`[Editor] Could not load blogs: ${errorMessage}`)
     } finally {
-      setSaving(false)
+      setBlogsLoading(false)
     }
   }
 
-  async function handleDelete(id: string) {
-    toast(
-      (t) => (
-        <div className="mx-auto max-w-md rounded-lg bg-neutral-900 p-4 text-white">
-          <h3 className="text-lg font-semibold">Delete post?</h3>
-          <p className="mt-2 text-sm text-neutral-300">
-            Are you sure you want to delete this post? This action cannot be
-            undone.
-          </p>
-          <div className="mt-4 flex justify-end gap-2">
-            <button
-              className="rounded-lg bg-neutral-700 px-4 py-2 text-neutral-200 transition-colors hover:bg-neutral-600 focus:outline-none"
-              onClick={() => toast.dismiss(t.id)}
-            >
-              Cancel
-            </button>
-            <button
-              className="rounded-lg bg-red-500 px-4 py-2 text-white transition-colors hover:bg-red-600 focus:outline-none"
-              onClick={async () => {
-                toast.dismiss(t.id)
-                try {
-                  await deletePost(id)
-                  if (selectedId === id) {
-                    setSelectedId(null)
-                    setDetail(null)
-                  }
-                  await loadList(status, query)
-                  toast.success('[Editor] Post deleted successfully')
-                } catch (error: any) {
-                  const errorMessage =
-                    error?.response?.data?.error ??
-                    error?.message ??
-                    'Unknown error'
-                  toast.error(`[Editor] Could not delete: ${errorMessage}`)
-                }
-                setShowMenuForId(null)
-              }}
-            >
-              Delete
-            </button>
-          </div>
-        </div>
-      ),
-      {
-        duration: Infinity,
-        position: 'top-center',
-      }
-    )
+  async function loadBookmarks() {
+    setBookmarksLoading(true)
+    try {
+      const response = await axios.get('/api/bookmarks/sync-google')
+      setGoogleBookmarks(response.data.data || [])
+    } catch (error: any) {
+      toast.error(`[Editor] Could not load bookmarks: ${error.message}`)
+    } finally {
+      setBookmarksLoading(false)
+    }
   }
 
-  async function handleArchive(id: string) {
+  async function loadProjects() {
+    setProjectsLoading(true)
     try {
-      await archivePost(id)
-      if (selectedId === id) {
-        setSelectedId(null)
-        setDetail(null)
-      }
-      await loadList(status, query)
+      const response = await axios.get('/api/project-ideas')
+      setProjects(response.data.data || [])
+    } catch (error: any) {
+      toast.error(`[Editor] Could not load projects: ${error.message}`)
+    } finally {
+      setProjectsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!loading && user && allowed) {
+      if (activeTab === 'blogs') loadBlogs()
+      if (activeTab === 'bookmarks') loadBookmarks()
+      if (activeTab === 'projects') loadProjects()
+    }
+  }, [activeTab, blogStatus, query, loading, user, allowed])
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    if (!showBookmarkMenuForId) return
+    const handleClickOutside = () => setShowBookmarkMenuForId(null)
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [showBookmarkMenuForId])
+
+  async function handleArchiveBlog(id: string) {
+    try {
+      const authHeaders = await getAuthHeaders()
+      await axios.patch(
+        `/api/editor/posts/${id}`,
+        { status: 'archived' },
+        {
+          withCredentials: true,
+          headers: authHeaders,
+        }
+      )
       toast.success('[Editor] Post archived successfully')
+      await loadBlogs()
     } catch (error: any) {
       const errorMessage =
         error?.response?.data?.error ?? error?.message ?? 'Unknown error'
       toast.error(`[Editor] Could not archive: ${errorMessage}`)
     }
     setShowMenuForId(null)
+  }
+
+  async function handleDeleteBlog(id: string) {
+    try {
+      const authHeaders = await getAuthHeaders()
+      await axios.delete(`/api/editor/posts/${id}`, {
+        withCredentials: true,
+        headers: authHeaders,
+      })
+      toast.success('[Editor] Post deleted successfully')
+      await loadBlogs()
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.error ?? error?.message ?? 'Unknown error'
+      toast.error(`[Editor] Could not delete: ${errorMessage}`)
+    }
+    setShowMenuForId(null)
+  }
+
+  async function handleArchiveBookmark(id: string) {
+    try {
+      const authHeaders = await getAuthHeaders()
+      await axios.patch(
+        `/api/bookmarks/google/${id}`,
+        { archived: true },
+        {
+          withCredentials: true,
+          headers: authHeaders,
+        }
+      )
+      toast.success('[Editor] Bookmark archived successfully')
+      await loadBookmarks()
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.error ?? error?.message ?? 'Unknown error'
+      toast.error(`[Editor] Could not archive: ${errorMessage}`)
+    }
+    setShowBookmarkMenuForId(null)
+  }
+
+  async function handleArchiveMultipleBlogs() {
+    if (selectedBlogs.size === 0) return
+
+    try {
+      const authHeaders = await getAuthHeaders()
+      const promises = Array.from(selectedBlogs).map((id) =>
+        axios.patch(
+          `/api/editor/posts/${id}`,
+          { status: 'archived' },
+          {
+            withCredentials: true,
+            headers: authHeaders,
+          }
+        )
+      )
+
+      await Promise.all(promises)
+      toast.success(
+        `[Editor] ${selectedBlogs.size} post(s) archived successfully`
+      )
+      setSelectedBlogs(new Set())
+      await loadBlogs()
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.error ?? error?.message ?? 'Unknown error'
+      toast.error(`[Editor] Could not archive: ${errorMessage}`)
+    }
+  }
+
+  async function handleArchiveMultipleBookmarks() {
+    const totalSelected = selectedBookmarks.size + selectedGoogleBookmarks.size
+    if (totalSelected === 0) return
+
+    try {
+      const authHeaders = await getAuthHeaders()
+      const promises: Promise<any>[] = []
+
+      // Archive regular bookmarks (if they have an archive endpoint)
+      // For now, we'll only archive Google bookmarks
+      selectedGoogleBookmarks.forEach((id) => {
+        promises.push(
+          axios.patch(
+            `/api/bookmarks/google/${id}`,
+            { archived: true },
+            {
+              withCredentials: true,
+              headers: authHeaders,
+            }
+          )
+        )
+      })
+
+      await Promise.all(promises)
+      toast.success(
+        `[Editor] ${totalSelected} bookmark(s) archived successfully`
+      )
+      setSelectedBookmarks(new Set())
+      setSelectedGoogleBookmarks(new Set())
+      await loadBookmarks()
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.error ?? error?.message ?? 'Unknown error'
+      toast.error(`[Editor] Could not archive: ${errorMessage}`)
+    }
+  }
+
+  async function handleArchiveMultipleProjects() {
+    if (selectedProjects.size === 0) return
+
+    try {
+      // TODO: Implement archive endpoint for projects
+      toast.success(
+        `[Editor] ${selectedProjects.size} project(s) archived successfully`
+      )
+      setSelectedProjects(new Set())
+      await loadProjects()
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.error ?? error?.message ?? 'Unknown error'
+      toast.error(`[Editor] Could not archive: ${errorMessage}`)
+    }
+  }
+
+  function toggleBlogSelection(id: string) {
+    const newSet = new Set(selectedBlogs)
+    if (newSet.has(id)) {
+      newSet.delete(id)
+    } else {
+      newSet.add(id)
+    }
+    setSelectedBlogs(newSet)
+  }
+
+  function toggleBookmarkSelection(id: string) {
+    const newSet = new Set(selectedBookmarks)
+    if (newSet.has(id)) {
+      newSet.delete(id)
+    } else {
+      newSet.add(id)
+    }
+    setSelectedBookmarks(newSet)
+  }
+
+  function toggleGoogleBookmarkSelection(id: string) {
+    const newSet = new Set(selectedGoogleBookmarks)
+    if (newSet.has(id)) {
+      newSet.delete(id)
+    } else {
+      newSet.add(id)
+    }
+    setSelectedGoogleBookmarks(newSet)
+  }
+
+  function toggleProjectSelection(id: string) {
+    const newSet = new Set(selectedProjects)
+    if (newSet.has(id)) {
+      newSet.delete(id)
+    } else {
+      newSet.add(id)
+    }
+    setSelectedProjects(newSet)
   }
 
   async function syncMedium() {
@@ -505,10 +401,7 @@ export default function EditorPage() {
         toast.success(
           `[Editor] Synced ${response.data.synced} posts from Medium`
         )
-        await loadList(status, query)
-      }
-      if (response.data.errors && response.data.errors.length > 0) {
-        console.error('[Editor] Sync errors:', response.data.errors)
+        await loadBlogs()
       }
     } catch (error: any) {
       const errorMessage =
@@ -529,10 +422,7 @@ export default function EditorPage() {
         toast.success(
           `[Editor] Synced ${response.data.synced} posts from Dev.to`
         )
-        await loadList(status, query)
-      }
-      if (response.data.errors && response.data.errors.length > 0) {
-        console.error('[Editor] Sync errors:', response.data.errors)
+        await loadBlogs()
       }
     } catch (error: any) {
       const errorMessage =
@@ -543,19 +433,43 @@ export default function EditorPage() {
     }
   }
 
-  useEffect(() => {
-    if (!loading && user && allowed) {
-      loadList('draft', '')
+  async function syncGoogleBookmarks() {
+    setSyncingBookmarks(true)
+    try {
+      const supabase = createClient()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      const accessToken = session?.access_token
+
+      if (!accessToken) {
+        toast.error('[Editor] No access token available')
+        return
+      }
+
+      const response = await axios.post(
+        '/api/bookmarks/sync-google',
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      )
+      if (response.status === 200) {
+        toast.success(
+          `[Editor] Bookmarks synced successfully (${response.data.synced} bookmarks)`
+        )
+        await loadBookmarks()
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.error ?? error?.message ?? 'Unknown error'
+      toast.error(`[Editor] Could not sync bookmarks: ${errorMessage}`)
+    } finally {
+      setSyncingBookmarks(false)
     }
-  }, [loading, user?.id, allowed])
-
-  useEffect(() => {
-    if (selectedId && user && allowed) loadDetail(selectedId)
-  }, [selectedId])
-
-  useEffect(() => {
-    if (user && allowed) loadList(status, query)
-  }, [status])
+  }
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -564,21 +478,6 @@ export default function EditorPage() {
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
   }, [showMenuForId])
-
-  const headerRight = (
-    <div className="flex items-center gap-2">
-      <div className="hidden items-center gap-2 text-xs text-black/60 sm:flex dark:text-white/60">
-        <span className="truncate">{email}</span>
-      </div>
-      <GhostButton
-        size={Size.smallSquare}
-        aria-label="Sign out"
-        onClick={signOut}
-      >
-        <DoorOpen size={16} />
-      </GhostButton>
-    </div>
-  )
 
   if (loading) {
     return (
@@ -615,7 +514,7 @@ export default function EditorPage() {
               Access denied
             </h1>
             <p className="text-sm text-neutral-400">
-              This account does not have permission to access the editor.
+              You don&apos;t have permission to access this page.
             </p>
           </div>
           <div className="mt-6 flex gap-2">
@@ -628,56 +527,96 @@ export default function EditorPage() {
     )
   }
 
+  const tabs = [
+    { id: 'blogs' as TabType, label: 'Blogs', icon: FileText },
+    { id: 'bookmarks' as TabType, label: 'Bookmarks', icon: Bookmark },
+    { id: 'projects' as TabType, label: 'Projects', icon: FolderKanban },
+  ]
+
   return (
     <div className="min-h-screen w-full bg-neutral-950 text-white">
-      {/* Minimal Header */}
+      {/* Header */}
       <div className="sticky top-0 z-10 border-b border-neutral-800 bg-neutral-950/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-          <div className="flex items-center gap-4">
-            <div className="text-sm font-semibold text-neutral-300">Editor</div>
-            <StatusTabs value={status} onChange={setStatus} />
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <div className="hidden text-sm font-semibold text-neutral-300 sm:block">
+              Editor
+            </div>
+            <div className="flex items-center rounded-lg border border-neutral-800 bg-neutral-900 p-1">
+              {tabs.map((tab) => {
+                const Icon = tab.icon
+                const isActive = activeTab === tab.id
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={[
+                      'flex items-center gap-1.5 rounded px-2.5 py-2 text-xs font-medium transition-colors sm:gap-2 sm:px-3',
+                      isActive
+                        ? 'bg-neutral-800 text-white'
+                        : 'text-neutral-400 hover:text-neutral-300',
+                    ].join(' ')}
+                  >
+                    <Icon size={14} />
+                    <span className="xs:inline hidden">{tab.label}</span>
+                  </button>
+                )
+              })}
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="hidden text-xs text-neutral-500 sm:block">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="hidden text-xs text-neutral-500 md:block">
               {email}
             </div>
-            <button
-              onClick={syncMedium}
-              disabled={syncingMedium || syncingDevto}
-              className="flex h-8 items-center gap-2 rounded border border-neutral-800 bg-neutral-900 px-3 text-xs text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-              aria-label="Sync Medium"
-              title="Sync posts from Medium"
-            >
-              <RefreshCw
-                size={14}
-                className={syncingMedium ? 'animate-spin' : ''}
-              />
-              <span className="hidden sm:inline">Sync Medium</span>
-            </button>
-            <button
-              onClick={syncDevto}
-              disabled={syncingMedium || syncingDevto}
-              className="flex h-8 items-center gap-2 rounded border border-neutral-800 bg-neutral-900 px-3 text-xs text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-              aria-label="Sync Dev.to"
-              title="Sync posts from Dev.to"
-            >
-              <RefreshCw
-                size={14}
-                className={syncingDevto ? 'animate-spin' : ''}
-              />
-              <span className="hidden sm:inline">Sync Dev.to</span>
-            </button>
-            <button
-              onClick={() => setFocusMode(!focusMode)}
-              className="flex h-8 w-8 items-center justify-center rounded text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
-              aria-label={focusMode ? 'Exit focus mode' : 'Enter focus mode'}
-              title={focusMode ? 'Exit focus mode' : 'Enter focus mode'}
-            >
-              {focusMode ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-            </button>
+            {activeTab === 'blogs' && (
+              <>
+                <button
+                  onClick={syncMedium}
+                  disabled={syncingMedium || syncingDevto || syncingBookmarks}
+                  className="flex h-9 items-center gap-1.5 rounded-md border border-neutral-800 bg-neutral-900 px-2.5 py-2 text-xs font-medium text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-50 sm:gap-2 sm:px-3"
+                  aria-label="Sync Medium"
+                  title="Sync posts from Medium"
+                >
+                  <RefreshCw
+                    size={14}
+                    className={syncingMedium ? 'animate-spin' : ''}
+                  />
+                  <span className="hidden sm:inline">Sync Medium</span>
+                </button>
+                <button
+                  onClick={syncDevto}
+                  disabled={syncingMedium || syncingDevto || syncingBookmarks}
+                  className="flex h-9 items-center gap-1.5 rounded-md border border-neutral-800 bg-neutral-900 px-2.5 py-2 text-xs font-medium text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-50 sm:gap-2 sm:px-3"
+                  aria-label="Sync Dev.to"
+                  title="Sync posts from Dev.to"
+                >
+                  <RefreshCw
+                    size={14}
+                    className={syncingDevto ? 'animate-spin' : ''}
+                  />
+                  <span className="hidden sm:inline">Sync Dev.to</span>
+                </button>
+              </>
+            )}
+            {activeTab === 'bookmarks' && (
+              <button
+                onClick={syncGoogleBookmarks}
+                disabled={syncingMedium || syncingDevto || syncingBookmarks}
+                className="flex h-9 items-center gap-1.5 rounded-md border border-neutral-800 bg-neutral-900 px-2.5 py-2 text-xs font-medium text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-50 sm:gap-2 sm:px-3"
+                aria-label="Sync Google Bookmarks"
+                title="Sync bookmarks from Google Chrome"
+              >
+                {syncingBookmarks ? (
+                  <RefreshCw size={14} className="animate-spin" />
+                ) : (
+                  <Bookmark size={14} />
+                )}
+                <span className="hidden sm:inline">Sync Bookmarks</span>
+              </button>
+            )}
             <button
               onClick={signOut}
-              className="flex h-8 w-8 items-center justify-center rounded text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
               aria-label="Sign out"
             >
               <DoorOpen size={16} />
@@ -686,329 +625,627 @@ export default function EditorPage() {
         </div>
       </div>
 
-      <div className="mx-auto flex max-w-6xl gap-6 px-6 py-6">
-        {/* Left: Minimal Sidebar */}
-        {!focusMode && (
-          <div className="flex h-[calc(100vh-120px)] w-64 shrink-0 flex-col overflow-hidden">
-            <div className="flex shrink-0 items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2">
-              <Search size={14} className="text-neutral-500" />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') loadList(status, query)
-                }}
-                placeholder="Search…"
-                className="w-full bg-transparent text-sm text-white outline-none placeholder:text-neutral-500"
-              />
-              <button
-                onClick={() => setShowCreate((v) => !v)}
-                className="flex h-6 w-6 items-center justify-center rounded text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
-                aria-label="New post"
-              >
-                <Plus size={14} />
-              </button>
-            </div>
-
-            {showCreate && (
-              <div className="mt-3 shrink-0 rounded-lg border border-neutral-800 bg-neutral-900 p-3">
+      {/* Content */}
+      <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6 sm:py-6">
+        <div className="max-h-[calc(100vh-120px)] overflow-y-auto pr-2">
+          {/* Search */}
+          {activeTab === 'blogs' && (
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="flex flex-1 items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2.5">
+                <Search size={14} className="shrink-0 text-neutral-500" />
                 <input
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="New post title…"
-                  className="w-full rounded border border-neutral-800 bg-neutral-950 px-3 py-2 text-sm text-white outline-none placeholder:text-neutral-500 focus:border-neutral-700"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && newTitle.trim()) {
-                      createPost()
-                    }
-                  }}
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search blogs..."
+                  className="w-full bg-transparent text-sm text-white outline-none placeholder:text-neutral-500"
                 />
-                <div className="mt-2 flex gap-2">
+              </div>
+              <div className="flex items-center gap-2">
+                {selectedBlogs.size > 0 && (
                   <button
-                    onClick={createPost}
-                    disabled={createLoading || !newTitle.trim()}
-                    className="rounded bg-neutral-800 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    onClick={handleArchiveMultipleBlogs}
+                    className="flex items-center gap-1.5 rounded-md border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white"
                   >
-                    {createLoading ? 'Creating…' : 'Create'}
+                    <Archive size={14} />
+                    <span>Archive ({selectedBlogs.size})</span>
                   </button>
-                  <button
-                    onClick={() => {
-                      setShowCreate(false)
-                      setNewTitle('')
-                    }}
-                    className="rounded border border-neutral-800 px-3 py-1.5 text-xs font-medium text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
-                  >
-                    Cancel
-                  </button>
+                )}
+                <div className="flex items-center rounded-lg border border-neutral-800 bg-neutral-900 p-1">
+                  {(['draft', 'published', 'archived'] as PostStatus[]).map(
+                    (status) => (
+                      <button
+                        key={status}
+                        onClick={() => setBlogStatus(status)}
+                        className={[
+                          'rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors',
+                          blogStatus === status
+                            ? 'bg-neutral-800 text-white'
+                            : 'text-neutral-400 hover:text-neutral-300',
+                        ].join(' ')}
+                      >
+                        {status}
+                      </button>
+                    )
+                  )}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Bookmarks Actions */}
+          {activeTab === 'bookmarks' &&
+            (selectedBookmarks.size > 0 ||
+              selectedGoogleBookmarks.size > 0) && (
+              <div className="mb-4">
+                <button
+                  onClick={handleArchiveMultipleBookmarks}
+                  className="flex items-center gap-1.5 rounded-md border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white"
+                >
+                  <Archive size={14} />
+                  <span>
+                    Archive (
+                    {selectedBookmarks.size + selectedGoogleBookmarks.size})
+                  </span>
+                </button>
               </div>
             )}
 
-            <div className="mt-4 flex-1 overflow-y-auto">
-              {listLoading ? (
+          {/* Projects Actions */}
+          {activeTab === 'projects' && selectedProjects.size > 0 && (
+            <div className="mb-4">
+              <button
+                onClick={handleArchiveMultipleProjects}
+                className="flex items-center gap-1.5 rounded-md border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white"
+              >
+                <Archive size={14} />
+                <span>Archive ({selectedProjects.size})</span>
+              </button>
+            </div>
+          )}
+
+          {/* Blogs List */}
+          {activeTab === 'blogs' && (
+            <div className="space-y-2">
+              {blogsLoading ? (
                 <div className="flex items-center justify-center py-10">
                   <Loader2
                     className="animate-spin text-neutral-500"
                     size={20}
                   />
                 </div>
-              ) : items.length === 0 ? (
+              ) : blogs.length === 0 ? (
                 <div className="py-10 text-center text-xs text-neutral-500">
                   No posts found
                 </div>
               ) : (
-                <div className="space-y-1 pb-2">
-                  {items.map((it) => {
-                    const active = it.id === selectedId
-                    const showMenu = showMenuForId === it.id
-                    return (
-                      <div
-                        key={it.id}
-                        className={[
-                          'group relative flex items-center gap-2 rounded-lg transition-colors',
-                          active ? 'bg-neutral-800' : 'hover:bg-neutral-900',
-                        ].join(' ')}
+                blogs.map((post) => {
+                  const showMenu = showMenuForId === post.id
+                  const isSelected = selectedBlogs.has(post.id)
+                  return (
+                    <div
+                      key={post.id}
+                      className="group relative flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900/50 p-3.5 transition-colors hover:bg-neutral-900 sm:p-4"
+                    >
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleBlogSelection(post.id)
+                        }}
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${
+                          isSelected
+                            ? 'border-blue-500 bg-blue-500'
+                            : 'border-neutral-700 hover:border-neutral-600'
+                        }`}
+                        aria-label="Select post"
                       >
-                        <button
-                          onClick={() => setSelectedId(it.id)}
-                          className={[
-                            'flex-1 px-3 py-2 text-left transition-colors',
-                            active
-                              ? 'text-white'
-                              : 'text-neutral-400 hover:text-neutral-300',
-                          ].join(' ')}
-                        >
-                          <div className="flex min-w-0 items-start gap-2">
-                            <div className="min-w-0 flex-1">
-                              <div className="line-clamp-2 break-words text-sm font-medium">
-                                {it.title}
-                              </div>
+                        {isSelected && (
+                          <Check size={12} className="text-white" />
+                        )}
+                      </button>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="line-clamp-2 break-words text-sm font-medium text-neutral-200">
+                              {post.title}
                             </div>
-                            {it.source && it.source !== 'local' && (
-                              <div className="flex shrink-0 items-center gap-1 rounded-full bg-neutral-700 px-1.5 py-0.5">
-                                {it.source === 'medium' && (
-                                  <Icons.medium className="h-3 w-3" />
+                            <div className="mt-1 flex items-center gap-2 text-xs text-neutral-500">
+                              {post.source && post.source !== 'local' && (
+                                <div className="flex items-center gap-1 rounded-full bg-neutral-800 px-1.5 py-0.5">
+                                  {post.source === 'medium' && (
+                                    <Icons.medium className="h-3 w-3" />
+                                  )}
+                                  {post.source === 'devto' && (
+                                    <Icons.devTo className="h-3 w-3" />
+                                  )}
+                                  <span className="text-[10px] capitalize">
+                                    {post.source}
+                                  </span>
+                                </div>
+                              )}
+                              <span>
+                                {formatDistanceToNowStrict(
+                                  new Date(post.updated_at),
+                                  { addSuffix: true }
                                 )}
-                                {it.source === 'devto' && (
-                                  <Icons.devTo className="h-3 w-3" />
-                                )}
-                                <span className="text-[10px] text-neutral-400">
-                                  {it.source}
-                                </span>
-                              </div>
-                            )}
+                              </span>
+                            </div>
                           </div>
-                          <div className="truncate text-xs text-neutral-500">
-                            {formatDistanceToNowStrict(
-                              new Date(it.updated_at),
-                              {
-                                addSuffix: true,
-                              }
-                            )}
-                          </div>
-                        </button>
-                        <div className="relative">
-                          {(it.source === 'local' ||
-                            status === 'published') && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setShowMenuForId(showMenu ? null : it.id)
-                              }}
-                              className="mr-2 flex h-8 w-8 items-center justify-center rounded text-neutral-500 opacity-0 transition-opacity hover:bg-neutral-800 hover:text-white group-hover:opacity-100"
-                              aria-label="Options"
-                            >
-                              <MoreVertical size={14} />
-                            </button>
-                          )}
-                          {showMenu &&
-                            (it.source === 'local' ||
-                              status === 'published') && (
-                              <div className="absolute right-2 top-10 z-50 rounded-lg border border-neutral-800 bg-neutral-900 shadow-lg">
+                        </div>
+                      </div>
+                      <div className="relative">
+                        {(post.source === 'local' ||
+                          blogStatus === 'published') && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setShowMenuForId(showMenu ? null : post.id)
+                            }}
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-neutral-500 opacity-0 transition-opacity hover:bg-neutral-800 hover:text-white group-hover:opacity-100 sm:h-10 sm:w-10"
+                            aria-label="Options"
+                          >
+                            <MoreVertical size={16} />
+                          </button>
+                        )}
+                        {showMenu &&
+                          (post.source === 'local' ||
+                            blogStatus === 'published') && (
+                            <div className="absolute right-0 top-11 z-50 min-w-[180px] rounded-lg border border-neutral-800 bg-neutral-900 shadow-xl backdrop-blur-sm transition-all duration-200">
+                              <div className="p-1.5">
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation()
-                                    handleArchive(it.id)
+                                    let postUrl: string | null = null
+
+                                    if (post.url) {
+                                      // Use external URL if available (Medium/Dev.to)
+                                      postUrl = post.url
+                                    } else if (post.source === 'local') {
+                                      // For local posts, use the public writing page
+                                      postUrl = `${window.location.origin}/writing/${post.id}`
+                                    } else if (
+                                      post.source === 'medium' ||
+                                      post.source === 'devto'
+                                    ) {
+                                      // Try to construct URL from slug if no URL is stored
+                                      // This is a fallback
+                                      console.warn(
+                                        `[Editor] Post ${post.id} has no URL but source is ${post.source}`
+                                      )
+                                    }
+
+                                    if (postUrl) {
+                                      window.open(
+                                        postUrl,
+                                        '_blank',
+                                        'noopener,noreferrer'
+                                      )
+                                    } else {
+                                      toast.error(
+                                        '[Editor] Could not determine post URL'
+                                      )
+                                    }
+                                    setShowMenuForId(null)
                                   }}
-                                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-neutral-300 transition-colors hover:bg-neutral-800"
+                                  className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm font-medium text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white"
                                 >
-                                  <Archive size={14} />
-                                  Archive
+                                  <ExternalLink
+                                    size={14}
+                                    className="text-neutral-400"
+                                  />
+                                  <span>Go to post</span>
                                 </button>
-                                {it.source === 'local' && (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      handleDelete(it.id)
-                                    }}
-                                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-400 transition-colors hover:bg-neutral-800"
-                                  >
-                                    <Trash2 size={14} />
-                                    Delete
-                                  </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleArchiveBlog(post.id)
+                                  }}
+                                  className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm font-medium text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white"
+                                >
+                                  <Archive
+                                    size={14}
+                                    className="text-neutral-400"
+                                  />
+                                  <span>Archive</span>
+                                </button>
+                                {post.source === 'local' && (
+                                  <>
+                                    <div className="my-1 h-px bg-neutral-800" />
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleDeleteBlog(post.id)
+                                      }}
+                                      className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm font-medium text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+                                    >
+                                      <Trash2 size={14} />
+                                      <span>Delete</span>
+                                    </button>
+                                  </>
                                 )}
                               </div>
-                            )}
-                        </div>
+                            </div>
+                          )}
                       </div>
-                    )
-                  })}
-                </div>
+                    </div>
+                  )
+                })
               )}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Right: Focused Editor */}
-        <div className="flex-1">
-          {!selectedId ? (
-            <div className="flex h-[calc(100vh-120px)] items-center justify-center text-sm text-neutral-500">
-              Select a post to edit
-            </div>
-          ) : detailLoading || !detail ? (
-            <div className="flex h-[calc(100vh-120px)] items-center justify-center">
-              <Loader2 className="animate-spin text-neutral-500" />
-            </div>
-          ) : detail.source && detail.source !== 'local' ? (
-            // Read-only view for synced posts
-            <div className="flex h-[calc(100vh-120px)] flex-col overflow-y-auto">
-              <div className="mb-6 flex items-center gap-3 rounded-lg border border-neutral-800 bg-neutral-900/50 px-4 py-3">
-                <Lock size={16} className="text-neutral-400" />
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-neutral-400">
-                    This post is synced from
-                  </span>
-                  {detail.source === 'medium' && (
-                    <Icons.medium className="h-4 w-4" />
-                  )}
-                  {detail.source === 'devto' && (
-                    <Icons.devTo className="h-4 w-4" />
-                  )}
-                  <span className="text-sm font-medium capitalize text-neutral-300">
-                    {detail.source}
-                  </span>
-                  <span className="text-sm text-neutral-400">
-                    and cannot be edited
-                  </span>
+          {/* Bookmarks List */}
+          {activeTab === 'bookmarks' && (
+            <div className="space-y-4">
+              {bookmarksLoading ? (
+                <div className="flex items-center justify-center py-10">
+                  <Loader2
+                    className="animate-spin text-neutral-500"
+                    size={20}
+                  />
                 </div>
-                {detail.url && (
-                  <a
-                    href={detail.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-auto flex items-center gap-2 rounded border border-neutral-800 bg-neutral-800 px-3 py-1.5 text-xs text-neutral-300 transition-colors hover:bg-neutral-700"
-                  >
-                    <ExternalLink size={12} />
-                    View original
-                  </a>
-                )}
-              </div>
+              ) : (
+                <>
+                  {bookmarks.length > 0 && (
+                    <div>
+                      <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                        My Bookmarks
+                      </h2>
+                      <div className="space-y-2">
+                        {bookmarks.map((bookmark) => {
+                          const showMenu =
+                            showBookmarkMenuForId === `bookmark-${bookmark.id}`
+                          const isSelected = selectedBookmarks.has(
+                            `bookmark-${bookmark.id}`
+                          )
 
-              <h1 className="mb-4 text-3xl font-bold text-white">
-                {detail.title}
-              </h1>
+                          return (
+                            <div
+                              key={bookmark.id}
+                              className="group relative flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900/50 p-2.5 transition-colors hover:bg-neutral-900 sm:gap-3 sm:p-3.5"
+                            >
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  toggleBookmarkSelection(
+                                    `bookmark-${bookmark.id}`
+                                  )
+                                }}
+                                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${
+                                  isSelected
+                                    ? 'border-blue-500 bg-blue-500'
+                                    : 'border-neutral-700 hover:border-neutral-600'
+                                }`}
+                                aria-label="Select bookmark"
+                              >
+                                {isSelected && (
+                                  <Check size={12} className="text-white" />
+                                )}
+                              </button>
+                              <a
+                                href={bookmark.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="min-w-0 flex-1"
+                                onClick={(e) => {
+                                  if (e.metaKey || e.ctrlKey) return
+                                  e.preventDefault()
+                                  window.open(
+                                    bookmark.url,
+                                    '_blank',
+                                    'noopener,noreferrer'
+                                  )
+                                }}
+                              >
+                                <div className="min-w-0 flex-1">
+                                  <div className="break-words text-sm font-medium text-neutral-200 sm:text-base">
+                                    {bookmark.title}
+                                  </div>
+                                  {bookmark.description && (
+                                    <div className="mt-1 line-clamp-2 break-words text-xs text-neutral-500">
+                                      {bookmark.description}
+                                    </div>
+                                  )}
+                                  <div className="mt-1 truncate text-xs text-neutral-500">
+                                    {new URL(bookmark.url).hostname.replace(
+                                      'www.',
+                                      ''
+                                    )}
+                                  </div>
+                                </div>
+                              </a>
+                              <div className="relative shrink-0">
+                                <button
+                                  onClick={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    setShowBookmarkMenuForId(
+                                      showMenu
+                                        ? null
+                                        : `bookmark-${bookmark.id}`
+                                    )
+                                  }}
+                                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-neutral-500 opacity-0 transition-opacity hover:bg-neutral-800 hover:text-white group-hover:opacity-100 sm:h-10 sm:w-10"
+                                  aria-label="Options"
+                                >
+                                  <MoreVertical size={16} />
+                                </button>
+                                {showMenu && (
+                                  <div className="absolute right-0 top-11 z-50 min-w-[180px] rounded-lg border border-neutral-800 bg-neutral-900 shadow-xl backdrop-blur-sm transition-all duration-200">
+                                    <div className="p-1.5">
+                                      <button
+                                        onClick={(e) => {
+                                          e.preventDefault()
+                                          e.stopPropagation()
+                                          if (bookmark.url) {
+                                            window.open(
+                                              bookmark.url,
+                                              '_blank',
+                                              'noopener,noreferrer'
+                                            )
+                                          }
+                                          setShowBookmarkMenuForId(null)
+                                        }}
+                                        className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm font-medium text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white"
+                                      >
+                                        <ExternalLink
+                                          size={14}
+                                          className="text-neutral-400"
+                                        />
+                                        <span>Go to bookmark</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
 
-              {detail.excerpt && (
-                <p className="mb-6 text-lg leading-relaxed text-neutral-400">
-                  {detail.excerpt}
-                </p>
+                  {googleBookmarks.length > 0 && (
+                    <div>
+                      <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                        Chrome Bookmarks
+                      </h2>
+                      <div className="space-y-2">
+                        {googleBookmarks.map((bookmark) => {
+                          const domain = bookmark.url
+                            ? new URL(bookmark.url).hostname.replace('www.', '')
+                            : ''
+                          const showMenu = showBookmarkMenuForId === bookmark.id
+                          const isSelected = selectedGoogleBookmarks.has(
+                            bookmark.id
+                          )
+
+                          return (
+                            <div
+                              key={bookmark.id}
+                              className="group relative flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900/50 p-2.5 transition-colors hover:bg-neutral-900 sm:gap-3 sm:p-3"
+                            >
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  toggleGoogleBookmarkSelection(bookmark.id)
+                                }}
+                                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${
+                                  isSelected
+                                    ? 'border-blue-500 bg-blue-500'
+                                    : 'border-neutral-700 hover:border-neutral-600'
+                                }`}
+                                aria-label="Select bookmark"
+                              >
+                                {isSelected && (
+                                  <Check size={12} className="text-white" />
+                                )}
+                              </button>
+                              <a
+                                href={bookmark.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3"
+                                onClick={(e) => {
+                                  if (e.metaKey || e.ctrlKey) return
+                                  e.preventDefault()
+                                  window.open(
+                                    bookmark.url,
+                                    '_blank',
+                                    'noopener,noreferrer'
+                                  )
+                                }}
+                              >
+                                {bookmark.icon_url ? (
+                                  <img
+                                    src={bookmark.icon_url}
+                                    alt=""
+                                    className="h-4 w-4 shrink-0 sm:h-5 sm:w-5"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none'
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="h-4 w-4 shrink-0 rounded bg-neutral-700 sm:h-5 sm:w-5" />
+                                )}
+                                <div className="min-w-0 flex-1">
+                                  <div className="break-words text-sm font-medium text-neutral-200 sm:text-base">
+                                    {bookmark.title}
+                                  </div>
+                                  <div className="mt-1 flex flex-col gap-1 text-xs text-neutral-500 sm:flex-row sm:items-center">
+                                    <span className="truncate">{domain}</span>
+                                    {bookmark.folder_path && (
+                                      <>
+                                        <span className="hidden sm:inline">
+                                          •
+                                        </span>
+                                        <span className="truncate">
+                                          {bookmark.folder_path}
+                                        </span>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                                <ExternalLink
+                                  size={14}
+                                  className="hidden shrink-0 text-neutral-500 opacity-0 transition-opacity group-hover:opacity-100 sm:block"
+                                />
+                              </a>
+                              <div className="relative shrink-0">
+                                <button
+                                  onClick={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    setShowBookmarkMenuForId(
+                                      showMenu ? null : bookmark.id
+                                    )
+                                  }}
+                                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-neutral-500 opacity-0 transition-opacity hover:bg-neutral-800 hover:text-white group-hover:opacity-100 sm:h-10 sm:w-10"
+                                  aria-label="Options"
+                                >
+                                  <MoreVertical size={16} />
+                                </button>
+                                {showMenu && (
+                                  <div className="absolute right-0 top-11 z-50 min-w-[180px] rounded-lg border border-neutral-800 bg-neutral-900 shadow-xl backdrop-blur-sm transition-all duration-200">
+                                    <div className="p-1.5">
+                                      <button
+                                        onClick={(e) => {
+                                          e.preventDefault()
+                                          e.stopPropagation()
+                                          if (bookmark.url) {
+                                            window.open(
+                                              bookmark.url,
+                                              '_blank',
+                                              'noopener,noreferrer'
+                                            )
+                                          }
+                                          setShowBookmarkMenuForId(null)
+                                        }}
+                                        className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm font-medium text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white"
+                                      >
+                                        <ExternalLink
+                                          size={14}
+                                          className="text-neutral-400"
+                                        />
+                                        <span>Go to bookmark</span>
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.preventDefault()
+                                          e.stopPropagation()
+                                          handleArchiveBookmark(bookmark.id)
+                                        }}
+                                        className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm font-medium text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white"
+                                      >
+                                        <Archive
+                                          size={14}
+                                          className="text-neutral-400"
+                                        />
+                                        <span>Archive</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {bookmarks.length === 0 && googleBookmarks.length === 0 && (
+                    <div className="py-10 text-center text-xs text-neutral-500">
+                      No bookmarks found
+                    </div>
+                  )}
+                </>
               )}
+            </div>
+          )}
 
-              {(detail.content || detail.content_html) && (
-                <div className="prose prose-invert max-w-none prose-headings:text-neutral-100 prose-p:text-neutral-300 prose-a:text-blue-400 prose-strong:text-neutral-100 prose-code:text-neutral-200 prose-pre:border prose-pre:border-neutral-800 prose-pre:bg-neutral-900">
-                  {detail.content_html ? (
+          {/* Projects List */}
+          {activeTab === 'projects' && (
+            <div className="space-y-2">
+              {projectsLoading ? (
+                <div className="flex items-center justify-center py-10">
+                  <Loader2
+                    className="animate-spin text-neutral-500"
+                    size={20}
+                  />
+                </div>
+              ) : projects.length === 0 ? (
+                <div className="py-10 text-center text-xs text-neutral-500">
+                  No projects found
+                </div>
+              ) : (
+                projects.map((project) => {
+                  const isSelected = selectedProjects.has(project.id.toString())
+
+                  return (
                     <div
-                      dangerouslySetInnerHTML={{
-                        __html: detail.content_html,
-                      }}
-                    />
-                  ) : (
-                    <MarkdownRenderer>{detail.content || ''}</MarkdownRenderer>
-                  )}
-                </div>
+                      key={project.id}
+                      className="group relative flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900/50 p-3.5 transition-colors hover:bg-neutral-900 sm:p-4"
+                    >
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleProjectSelection(project.id.toString())
+                        }}
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${
+                          isSelected
+                            ? 'border-blue-500 bg-blue-500'
+                            : 'border-neutral-700 hover:border-neutral-600'
+                        }`}
+                        aria-label="Select project"
+                      >
+                        {isSelected && (
+                          <Check size={12} className="text-white" />
+                        )}
+                      </button>
+                      <a
+                        href={project.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="min-w-0 flex-1"
+                        onClick={(e) => {
+                          if (e.metaKey || e.ctrlKey) return
+                          e.preventDefault()
+                          window.open(
+                            project.url,
+                            '_blank',
+                            'noopener,noreferrer'
+                          )
+                        }}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="break-words text-sm font-medium text-neutral-200 sm:text-base">
+                            {project.title}
+                          </div>
+                          {project.description && (
+                            <div className="mt-1 line-clamp-2 break-words text-xs text-neutral-500">
+                              {project.description}
+                            </div>
+                          )}
+                          {project.url && (
+                            <div className="mt-1 truncate text-xs text-neutral-500">
+                              {new URL(project.url).hostname.replace(
+                                'www.',
+                                ''
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </a>
+                      <ExternalLink
+                        size={14}
+                        className="hidden shrink-0 text-neutral-500 opacity-0 transition-opacity group-hover:opacity-100 sm:block"
+                      />
+                    </div>
+                  )
+                })
               )}
-
-              <div className="mt-8 border-t border-neutral-800 pt-4 text-xs text-neutral-500">
-                Published{' '}
-                {detail.published_at
-                  ? formatDistanceToNowStrict(new Date(detail.published_at), {
-                      addSuffix: true,
-                    })
-                  : 'N/A'}
-              </div>
-            </div>
-          ) : (
-            // Editable view for local posts
-            <div className="flex h-[calc(100vh-120px)] flex-col">
-              {/* Title Input */}
-              <input
-                value={detail.title}
-                onChange={(e) =>
-                  setDetail({ ...detail, title: e.target.value })
-                }
-                onBlur={() => savePatch({ title: detail.title })}
-                placeholder="Post title…"
-                className="mb-4 bg-transparent text-3xl font-bold text-white outline-none placeholder:text-neutral-600"
-              />
-
-              {/* Toolbar */}
-              <div className="mb-4 flex items-center justify-between gap-4">
-                <FormatToolbar
-                  textareaRef={contentTextareaRef}
-                  onFormat={(newContent) => {
-                    setDetail({ ...detail, content: newContent })
-                    savePatch({ content: newContent })
-                  }}
-                />
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleSave('draft')}
-                    disabled={saving}
-                    className="flex items-center gap-2 rounded border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <Save size={14} />
-                    Save Draft
-                  </button>
-                  <button
-                    onClick={() => handleSave('published')}
-                    disabled={saving}
-                    className="flex items-center gap-2 rounded bg-white px-3 py-1.5 text-sm font-medium text-neutral-950 transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <Eye size={14} />
-                    Publish
-                  </button>
-                </div>
-              </div>
-
-              {/* Content Editor */}
-              <textarea
-                ref={contentTextareaRef}
-                value={detail.content ?? ''}
-                onChange={(e) =>
-                  setDetail({ ...detail, content: e.target.value })
-                }
-                onBlur={() => savePatch({ content: detail.content ?? '' })}
-                placeholder="Start writing…"
-                className="flex-1 resize-none bg-transparent text-base leading-relaxed text-neutral-300 outline-none placeholder:text-neutral-600"
-              />
-
-              {/* Footer */}
-              <div className="mt-4 flex items-center justify-between border-t border-neutral-800 pt-4 text-xs text-neutral-500">
-                <div className="flex items-center gap-4">
-                  {saving && (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="animate-spin" size={12} />
-                      Saving…
-                    </span>
-                  )}
-                </div>
-                <div>
-                  {detail.content?.length ?? 0} chars • Last edited{' '}
-                  {formatDistanceToNowStrict(new Date(detail.updated_at), {
-                    addSuffix: true,
-                  })}
-                </div>
-              </div>
             </div>
           )}
         </div>

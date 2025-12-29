@@ -3,6 +3,10 @@
     {
       "path": "/api/writings/sync-all",
       "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/bookmarks/sync-google",
+      "schedule": "0 */12 * * *"
     }
   ]
 }

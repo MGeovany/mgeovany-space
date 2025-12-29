@@ -149,7 +149,7 @@ export async function GET(request: NextRequest) {
   let q = admin
     .from('posts')
     .select(
-      'id, title, slug, excerpt, status, published_at, updated_at, created_at, source'
+      'id, title, slug, excerpt, status, published_at, updated_at, created_at, source, url'
     )
 
   if (status) q = q.eq('status', status)

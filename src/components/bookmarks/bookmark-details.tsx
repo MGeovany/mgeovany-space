@@ -14,7 +14,6 @@ import { TitleBar } from '@/components/list-detail/title-bar'
 import { MarkdownRenderer } from '@/components/markdown-renderer'
 import { Tags } from '@/components/tag'
 import routes from '@/config/routes'
-import { API_URL } from '@/constants'
 
 export function BookmarkDetail({ id }: { id: string }) {
   const [bookmark, setBookmarks] = useState<Bookmark>()
@@ -23,25 +22,6 @@ export function BookmarkDetail({ id }: { id: string }) {
 
   const scrollContainerRef: RefObject<HTMLDivElement> = useRef(null)
   const titleRef: MutableRefObject<HTMLParagraphElement | null> = useRef(null)
-
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true)
-      try {
-        const response = await axios.get(`${API_URL}/bookmark/${id}`)
-        const data = response.data
-        if (data.success) {
-          setBookmarks(data.data)
-        }
-      } catch (error) {
-        toast.error(`[Bookmarks] Error fetching bookmark: ${error}`)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [id])
 
   if (loading) {
     return <Detail.Loading />

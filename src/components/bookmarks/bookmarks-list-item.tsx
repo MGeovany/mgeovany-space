@@ -6,7 +6,6 @@ import toast from 'react-hot-toast'
 
 import { Icons } from '@/components/icons'
 import { ListItem } from '@/components/list-detail/list-item'
-import { API_URL } from '@/constants'
 import { useUserRole } from '@/hooks/useUserRole'
 
 import { GhostButton, Size } from '../button'
@@ -72,7 +71,7 @@ export const BookmarksListItem = memo<BookmarksListItemProps>(
                     }
 
                     const res = await axios.delete(
-                      `${API_URL}/bookmark/${bookmark.id}`,
+                      `/api/bookmarks/${bookmark.id}`,
                       {
                         headers: {
                           'Content-Type': 'application/json',
