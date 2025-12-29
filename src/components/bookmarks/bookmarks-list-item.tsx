@@ -61,11 +61,13 @@ export const BookmarksListItem = memo<BookmarksListItemProps>(
                 onClick={async () => {
                   toast.dismiss(t.id)
                   try {
-                    const accessToken = localStorage.getItem('auth0Token')
+                    const { getSupabaseToken } =
+                      await import('@/lib/supabase/get-token')
+                    const accessToken = await getSupabaseToken()
 
                     if (!accessToken) {
                       toast.dismiss(t.id)
-                      toast.error('No access token available')
+                      toast.error('[Bookmarks] No access token available')
                       return
                     }
 
@@ -79,13 +81,16 @@ export const BookmarksListItem = memo<BookmarksListItemProps>(
                       }
                     )
                     if (res.status === 200) {
-                      toast.success('Bookmark deleted successfully', {
-                        duration: 4000,
-                      })
+                      toast.success(
+                        '[Bookmarks] Bookmark deleted successfully',
+                        {
+                          duration: 4000,
+                        }
+                      )
                       window.location.reload()
                     }
                   } catch (error) {
-                    toast.error('Failed to delete the bookmark')
+                    toast.error('[Bookmarks] Failed to delete the bookmark')
                   }
                 }}
               >

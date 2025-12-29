@@ -26,7 +26,7 @@ function LinkRenderer({ href, ...rest }: any) {
     }
     return <a target="_blank" rel="noopener" href={href} {...rest} />
   } catch (e) {
-    toast.error(`error: ${e}`)
+    toast.error(`[Markdown] Error parsing link: ${e}`)
     return <a target="_blank" rel="noopener" href={href} {...rest} />
   }
 }

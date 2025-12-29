@@ -1,6 +1,5 @@
 'use client'
 
-import { UserProfile, useUser } from '@auth0/nextjs-auth0/client'
 import { Modal } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { Linkedin, Plus } from 'lucide-react'
@@ -14,11 +13,11 @@ import {
   HomeIcon,
   WritingIcon,
 } from '@/components/icon'
-import { ProjectIcon } from '@/components/icons/shared'
-import { rolNameSpace } from '@/constants'
+import { DevToIcon, MediumIcon, ProjectIcon } from '@/components/icons/shared'
+import { useSupabaseUser } from '@/hooks/useSupabaseUser'
 
 import BookmarkForm from '../bookmarks/bookmark-form'
-import ProjectIdeaForm from '../project-ideas/project-idea-form'
+import ProjectIdeaForm from '../projects/project-idea-form'
 import BlogForm from '../writing/blog-form'
 import { NavigationLink } from './navigation-link'
 
@@ -94,15 +93,13 @@ const ThisAddBlogDialog = () => {
 
 export function SidebarNavigation() {
   const pathname = usePathname()
-  const { user } = useUser()
+  const { user } = useSupabaseUser()
 
-  /* if (user) {
-    const decodedToken: any = jwtDecode(user.idToken as string)
-    roles = decodedToken[rolNameSpace]
-  } */
-
-  const getUserRole = (user: UserProfile | undefined) => {
-    const roles = user?.[rolNameSpace] as string[] | undefined
+  const getUserRole = () => {
+    // Supabase user metadata can contain roles
+    // Adjust this based on your Supabase setup
+    const userMetadata = user?.user_metadata
+    const roles = userMetadata?.roles as string[] | undefined
     return roles ? roles[0] : null
   }
 
@@ -120,7 +117,7 @@ export function SidebarNavigation() {
           isExternal: false,
         },
 
-        /*  {
+        {
           href: '/writing',
           label: 'Writing',
           icon: WritingIcon,
@@ -129,7 +126,7 @@ export function SidebarNavigation() {
           isExternal: false,
           trailingAction:
             getUserRole(user) === 'admin' ? ThisAddBlogDialog : null,
-        }, */
+        },
       ],
     },
     {
@@ -143,18 +140,18 @@ export function SidebarNavigation() {
           isActive: pathname === '/bookmarks',
           isExternal: false,
           trailingAction:
-            getUserRole(user) === 'admin' ? ThisAddBookmarkDialog : null,
+            getUserRole() === 'admin' ? ThisAddBookmarkDialog : null,
         },
-        /*  {
-          href: '/project-ideas',
-          label: 'Project Ideas',
+        {
+          href: '/projects',
+          label: 'Projects',
           icon: ProjectIcon,
           trailingAccessory: null,
-          isActive: pathname === '/project-ideas',
+          isActive: pathname === '/projects',
           trailingAction:
             getUserRole(user) === 'admin' ? ThisAddProjectDialog : null,
           isExternal: false,
-        }, */
+        },
       ],
     },
 
@@ -175,6 +172,24 @@ export function SidebarNavigation() {
           href: 'https://www.linkedin.com/in/m-geovany/',
           label: 'LinkedIn',
           icon: Linkedin,
+          trailingAccessory: ExternalLinkIcon,
+          isActive: false,
+          trailingAction: null,
+          isExternal: true,
+        },
+        {
+          href: 'https://medium.com/@mgeovany',
+          label: 'Medium',
+          icon: MediumIcon,
+          trailingAccessory: ExternalLinkIcon,
+          isActive: false,
+          trailingAction: null,
+          isExternal: true,
+        },
+        {
+          href: 'https://dev.to/mgeovany',
+          label: 'Dev.to',
+          icon: DevToIcon,
           trailingAccessory: ExternalLinkIcon,
           isActive: false,
           trailingAction: null,

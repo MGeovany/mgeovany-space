@@ -1,5 +1,9 @@
 {
-  "extends": ["plugin:prettier/recommended", "plugin:@next/next/recommended"],
+  "extends": [
+    "plugin:prettier/recommended",
+    "plugin:@next/next/recommended",
+    "plugin:react/recommended"
+  ],
   "plugins": ["react", "@typescript-eslint", "simple-import-sort"],
   "env": {
     "node": true,
@@ -7,6 +11,14 @@
     "jasmine": true,
     "jest": true,
     "es6": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
   },
   "rules": {
     "simple-import-sort/imports": "error",
@@ -28,7 +40,6 @@
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "@next/next/no-img-element": "off"
   },
-  "parser": "@typescript-eslint/parser",
   "settings": {
     "react": {
       "pragma": "React",

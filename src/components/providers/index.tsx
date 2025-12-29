@@ -1,5 +1,4 @@
 'use client'
-import { UserProvider } from '@auth0/nextjs-auth0/client'
 import { MantineProvider } from '@mantine/core'
 import { createContext, useState } from 'react'
 
@@ -32,13 +31,11 @@ export function Providers({ children }: Props) {
   return (
     <>
       <MantineProvider>
-        <UserProvider>
-          <SEO />
-          <Toast />
-          <GlobalNavigationContext.Provider value={state}>
-            {children}
-          </GlobalNavigationContext.Provider>
-        </UserProvider>
+        <SEO />
+        <Toast />
+        <GlobalNavigationContext.Provider value={state}>
+          {children}
+        </GlobalNavigationContext.Provider>
       </MantineProvider>
     </>
   )

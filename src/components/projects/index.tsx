@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import { ListContainer } from '@/components/list-detail/ListContainer'
 import { TitleBar } from '@/components/list-detail/title-bar'
 import { LoadingSpinner } from '@/components/loading-spinner'
-import { ProjectIdeaListItem } from '@/components/project-ideas/project-list-item'
+import { ProjectIdeaListItem } from '@/components/projects/project-list-item'
 import { API_URL } from '@/constants'
 
 export const ProjectIdeasList = () => {
@@ -28,7 +28,7 @@ export const ProjectIdeasList = () => {
         setData(response.data.data)
       })
       .catch((error) => {
-        toast.error('Error fetching data:', error)
+        toast.error(`[Projects] Error fetching project ideas: ${error}`)
       })
       .finally(() => {
         setLoading(false)
@@ -38,10 +38,7 @@ export const ProjectIdeasList = () => {
   if (loading) {
     return (
       <ListContainer onRef={setScrollContainerRef}>
-        <TitleBar
-          scrollContainerRef={scrollContainerRef}
-          title="Project Ideas"
-        />
+        <TitleBar scrollContainerRef={scrollContainerRef} title="Projects" />
         <div className="flex h-full flex-1 items-center justify-center">
           <LoadingSpinner />
         </div>
@@ -52,12 +49,9 @@ export const ProjectIdeasList = () => {
   if (data.length === 0) {
     return (
       <ListContainer onRef={setScrollContainerRef}>
-        <TitleBar
-          scrollContainerRef={scrollContainerRef}
-          title="Project Ideas"
-        />
+        <TitleBar scrollContainerRef={scrollContainerRef} title="Projects" />
         <div className="flex h-full flex-1 items-center justify-center">
-          <h1 className="text-md text-gray-500">No project ideas found</h1>
+          <h1 className="text-md text-gray-500">No projects found</h1>
         </div>
       </ListContainer>
     )
@@ -65,10 +59,7 @@ export const ProjectIdeasList = () => {
 
   return (
     <ListContainer onRef={setScrollContainerRef}>
-      <TitleBar
-        scrollContainerRef={scrollContainerRef}
-        title="📡 Project Ideas"
-      />
+      <TitleBar scrollContainerRef={scrollContainerRef} title="📡 Projects" />
       <LayoutGroup>
         <div className="lg:space-y-1 lg:p-3">
           {data.map((content) => {

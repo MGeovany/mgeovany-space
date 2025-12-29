@@ -25,12 +25,11 @@ const BlogForm = ({ blog, onClose }: BlogFormProps) => {
     event.preventDefault()
 
     try {
-      const response = await axios.get('/api/auth/get-auth0-token')
-      const auth0Token = response.data.accessToken
-      localStorage.setItem('auth0Token', auth0Token)
+      const { getSupabaseToken } = await import('@/lib/supabase/get-token')
+      const supabaseToken = await getSupabaseToken()
 
-      if (!auth0Token) {
-        toast.error('No access token available')
+      if (!supabaseToken) {
+        toast.error('[Writing] No access token available')
         return
       }
 
@@ -44,13 +43,13 @@ const BlogForm = ({ blog, onClose }: BlogFormProps) => {
           },
           {
             headers: {
-              Authorization: `Bearer ${auth0Token}`,
+              Authorization: `Bearer ${supabaseToken}`,
             },
           }
         )
 
         if (response.status === 200) {
-          toast.success('Bookmark updated successfully')
+          toast.success('[Writing] Blog post updated successfully')
         }
       } else {
         // Adding case
@@ -62,19 +61,19 @@ const BlogForm = ({ blog, onClose }: BlogFormProps) => {
           },
           {
             headers: {
-              Authorization: `Bearer ${auth0Token}`,
+              Authorization: `Bearer ${supabaseToken}`,
             },
           }
         )
 
         if (response.status === 200) {
-          toast.success('Bookmark added successfully')
+          toast.success('[Writing] Blog post added successfully')
         }
       }
       onClose() // Close the modal after the form is submitted
       window.location.reload() // Refresh the page to see the updated list
     } catch (error) {
-      toast.error('There was an error, please try again')
+      toast.error('[Writing] Failed to save blog post')
     }
   }
 

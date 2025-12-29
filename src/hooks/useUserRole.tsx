@@ -1,13 +1,14 @@
-import { useUser } from '@auth0/nextjs-auth0/client'
-
-import { rolNameSpace } from '@/constants'
+import { useSupabaseUser } from './useSupabaseUser'
 
 export function useUserRole() {
-  const { user } = useUser()
+  const { user } = useSupabaseUser()
 
   const getUserRole = () => {
     if (!user) return null
-    const roles = user?.[rolNameSpace] as string[] | undefined
+    // Supabase user metadata can contain roles
+    // Adjust this based on your Supabase setup
+    const userMetadata = user?.user_metadata
+    const roles = userMetadata?.roles as string[] | undefined
     return roles ? roles[0] : null
   }
 

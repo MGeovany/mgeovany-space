@@ -30,7 +30,7 @@ export const BookmarksList = () => {
         setBookmarks(response.data.data)
       })
       .catch((error) => {
-        toast.error('Error fetching bookmarks:', error)
+        toast.error(`[Bookmarks] Error fetching bookmarks: ${error}`)
       })
       .finally(() => {
         setLoading(false)

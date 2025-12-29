@@ -1,19 +1,15 @@
-'use client'
+import { ReactNode } from 'react'
 
-import dynamic from 'next/dynamic'
+import { ListDetailView } from '@/components/layouts'
+import { WritingList } from '@/components/writing'
 
-import routes from '@/config/routes'
-
-const NextSeo = dynamic(() => import('next-seo').then((mod) => mod.NextSeo), {
-  ssr: false,
-})
-
-export default function ProjectIdeas() {
+export default function WritingPage({ children }: { children: ReactNode }) {
   return (
-    <NextSeo
-      title={routes.writing.seo.title}
-      description={routes.writing.seo.description}
-      openGraph={routes.writing.seo.openGraph}
+    <ListDetailView
+      list={<WritingList />}
+      hasDetail
+      shouldHideSidebar={false}
+      detail={children}
     />
   )
 }

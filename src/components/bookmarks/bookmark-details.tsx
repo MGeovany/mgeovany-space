@@ -34,7 +34,7 @@ export function BookmarkDetail({ id }: { id: string }) {
           setBookmarks(data.data)
         }
       } catch (error) {
-        toast.error(`Error fetching data: ${error}`)
+        toast.error(`[Bookmarks] Error fetching bookmark: ${error}`)
       } finally {
         setLoading(false)
       }

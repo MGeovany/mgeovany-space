@@ -30,13 +30,12 @@ const BookmarkForm = ({ bookmark, onClose }: BookmarkFormProps) => {
     event.preventDefault()
     toast.loading('Submitting bookmark...')
 
-    const response = await axios.get('/api/auth/get-auth0-token')
-    const auth0Token = response.data.accessToken
-    localStorage.setItem('auth0Token', auth0Token)
+    const { getSupabaseToken } = await import('@/lib/supabase/get-token')
+    const supabaseToken = await getSupabaseToken()
 
-    if (!auth0Token) {
+    if (!supabaseToken) {
       toast.dismiss()
-      toast.error('No access token available')
+      toast.error('[Bookmarks] No access token available')
       return
     }
     try {
@@ -52,14 +51,14 @@ const BookmarkForm = ({ bookmark, onClose }: BookmarkFormProps) => {
           },
           {
             headers: {
-              Authorization: `Bearer ${auth0Token}`,
+              Authorization: `Bearer ${supabaseToken}`,
             },
           }
         )
 
         if (response.status === 200) {
           toast.dismiss()
-          toast.success('Bookmark updated successfully')
+          toast.success('[Bookmarks] Bookmark updated successfully')
         }
       } else {
         // Adding case
@@ -73,14 +72,14 @@ const BookmarkForm = ({ bookmark, onClose }: BookmarkFormProps) => {
           },
           {
             headers: {
-              Authorization: `Bearer ${auth0Token}`,
+              Authorization: `Bearer ${supabaseToken}`,
             },
           }
         )
         console.log(response)
         if (response.status === 201) {
           toast.dismiss()
-          toast.success('Bookmark added successfully')
+          toast.success('[Bookmarks] Bookmark added successfully')
         }
       }
 
@@ -88,7 +87,7 @@ const BookmarkForm = ({ bookmark, onClose }: BookmarkFormProps) => {
       // window.location.reload() // Refresh the page to see the updated list
     } catch (error) {
       toast.dismiss()
-      toast.error('Failed to submit bookmark')
+      toast.error('[Bookmarks] Failed to submit bookmark')
     }
   }
 

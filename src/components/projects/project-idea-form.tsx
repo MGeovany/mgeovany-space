@@ -25,11 +25,12 @@ const ProjectIdeaForm = ({ projectIdea, onClose }: ProjectIdeaProps) => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
 
-    const accessToken = localStorage.getItem('auth0Token')
+    const { getSupabaseToken } = await import('@/lib/supabase/get-token')
+    const accessToken = await getSupabaseToken()
 
     if (!accessToken) {
       toast.dismiss()
-      toast.error('No access token available')
+      toast.error('[Projects] No access token available')
       return
     }
 
@@ -51,7 +52,7 @@ const ProjectIdeaForm = ({ projectIdea, onClose }: ProjectIdeaProps) => {
         )
 
         if (response.status === 200) {
-          toast.success('Project Idea updated successfully')
+          toast.success('[Projects] Project Idea updated successfully')
         }
       } else {
         // Adding case
@@ -70,13 +71,13 @@ const ProjectIdeaForm = ({ projectIdea, onClose }: ProjectIdeaProps) => {
         )
 
         if (response.status === 200) {
-          toast.success('Project Idea added successfully')
+          toast.success('[Projects] Project Idea added successfully')
         }
       }
 
       onClose() // Close the modal after the form is submitted
     } catch (error) {
-      toast.error('Failed to submit projectIdea')
+      toast.error('[Projects] Failed to submit project idea')
     }
   }
 

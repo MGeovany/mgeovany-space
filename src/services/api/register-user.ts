@@ -16,7 +16,7 @@ export async function registerUser(user: UserProfile | undefined) {
       })
 
       if (response.data.success) {
-        toast.success('Registration successful')
+        toast.success('[Auth] Registration successful')
       } else {
         console.error('Registration failed')
       }

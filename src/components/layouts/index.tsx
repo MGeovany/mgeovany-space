@@ -33,9 +33,12 @@ export function ListDetailView({ list, detail, hasDetail = false }: Props) {
 }
 
 export function SiteLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname()
+  const shouldHideSidebar = pathname?.startsWith('/editor')
+
   return (
     <div className="relative flex h-full min-h-screen w-full">
-      <Sidebar />
+      {!shouldHideSidebar && <Sidebar />}
       <div className="flex flex-1">{children}</div>
     </div>
   )

@@ -23,23 +23,22 @@ export const WritingList = () => {
 
   useEffect(() => {
     setLoading(true)
-    axios
-      .get(`${API_URL}/blog`)
-      .then((response) => {
-        setData(response.data.data)
-      })
-      .catch((error) => {
-        toast.error(`Error fetching data: ${error}`)
-      })
-      .finally(() => {
+    ;(async () => {
+      try {
+        const response = await axios.get('/api/writings')
+        setData(response.data)
+      } catch (error) {
+        toast.error(`[Writing] Error fetching posts: ${error}`)
+      } finally {
         setLoading(false)
-      })
+      }
+    })()
   }, [])
 
   if (loading && data.length === 0) {
     return (
       <ListContainer onRef={setScrollContainerRef}>
-        <TitleBar scrollContainerRef={scrollContainerRef} title="📑 Blogs" />
+        <TitleBar scrollContainerRef={scrollContainerRef} title="Blogs" />
         <div className="flex flex-1 items-center justify-center">
           <LoadingSpinner />
         </div>
@@ -49,18 +48,24 @@ export const WritingList = () => {
 
   return (
     <ListContainer onRef={setScrollContainerRef}>
-      <TitleBar scrollContainerRef={scrollContainerRef} title="📑 Blogs" />
+      <TitleBar scrollContainerRef={scrollContainerRef} title="Blogs" />
       <LayoutGroup>
         <div className="lg:space-y-1 lg:p-3">
-          {data.map((content) => {
-            const isActive = pathname === `/writing/${content.id}`
+          {data.length > 0 ? (
+            data.map((content) => {
+              const isActive = pathname === `/writing/${content.id}`
 
-            return (
-              <motion.div layout key={content.id}>
-                <BlogListItem active={isActive} blog={content} />
-              </motion.div>
-            )
-          })}
+              return (
+                <motion.div layout key={content.id}>
+                  <BlogListItem active={isActive} blog={content} />
+                </motion.div>
+              )
+            })
+          ) : (
+            <div className="flex h-full flex-1 items-center justify-center">
+              <h1 className="text-md text-gray-500">No blogs found</h1>
+            </div>
+          )}
         </div>
       </LayoutGroup>
     </ListContainer>

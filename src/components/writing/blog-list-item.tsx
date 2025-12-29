@@ -59,10 +59,12 @@ export const BlogListItem = memo<BlogListItemProps>(({ blog, active }) => {
               onClick={async () => {
                 toast.dismiss(t.id)
                 try {
-                  const accessToken = localStorage.getItem('auth0Token')
+                  const { getSupabaseToken } =
+                    await import('@/lib/supabase/get-token')
+                  const accessToken = await getSupabaseToken()
 
                   if (!accessToken) {
-                    toast.error('No access token available')
+                    toast.error('[Writing] No access token available')
                     return
                   }
 
@@ -73,13 +75,13 @@ export const BlogListItem = memo<BlogListItemProps>(({ blog, active }) => {
                     },
                   })
                   if (res.status === 200) {
-                    toast.success('Blog deleted successfully', {
+                    toast.success('[Writing] Blog deleted successfully', {
                       duration: 4000,
                     })
                     window.location.reload()
                   }
                 } catch (error) {
-                  toast.error('Failed to delete the blog')
+                  toast.error('[Writing] Failed to delete the blog')
                 }
               }}
             >

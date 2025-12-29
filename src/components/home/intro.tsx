@@ -1,6 +1,5 @@
 'use client'
 
-import { useUser } from '@auth0/nextjs-auth0/client'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
@@ -9,6 +8,7 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import { Detail } from '@/components/list-detail/detail'
 import { TitleBar } from '@/components/list-detail/title-bar'
 import { toggleLogin } from '@/constants'
+import { useSupabaseUser } from '@/hooks/useSupabaseUser'
 import { registerUser } from '@/services/api/register-user'
 
 function SectionTitle(props: any) {
@@ -60,31 +60,81 @@ function SectionContainer(props: any) {
   )
 }
 
+/* 
+rojectos
+- [ ] My-space
+- [ ] Pausa
+- [ ] Lector
+- [ ] heyfrwrd
+- [ ] Store env
+ */
+
+const projects = [
+  {
+    href: '/',
+    title: 'My Space',
+    subtitle: 'Archive writings, projects, and bookmark awesome stuff.',
+  },
+  {
+    href: 'https://github.com/MGeovany/pausa',
+    title: 'Pausa',
+    subtitle: 'Pause your work and take a break.',
+  },
+  {
+    href: 'https://lector.thefndrs.com/',
+    title: 'Lector',
+    subtitle: 'Read your favorite books.',
+  },
+  {
+    href: 'https://www.heyfrwrd.me/',
+    title: 'Heyfrwrd',
+    subtitle: 'AI agent for Instagram sales.',
+  },
+  {
+    href: 'https://store-env.vercel.app/',
+    title: 'Store Env',
+    subtitle: 'Store environment variables for your projects.',
+  },
+
+  {
+    href: 'https://next-enterprise.thefndrs.com/',
+    title: 'FNDRS Next Enterprise Boilerplate',
+    subtitle: 'Boilerplate for Next.js enterprise projects.',
+  },
+]
+
 const workHistory = [
   {
     href: 'https://savvly.com',
     title: 'Savvly',
-    subtitle: 'Frontend Engineer',
+    subtitle: 'Software Engineer',
     date: 'Jun 22 — Present',
   },
   {
     title: 'OneTouch',
-    subtitle: 'Software Engineer',
+    subtitle: 'Frontend Developer',
     date: 'Aug 23 — Jun 24',
+  },
+  {
+    title: 'OnCorp',
+    subtitle: 'Frontend Developer',
+    date: 'Nov 25 — Jan 26',
+  },
+  {
+    title: 'FNDRS',
+    href: 'https://thefndrs.com',
+    subtitle: 'Founder',
+    date: 'Nov 24 — Present',
   },
 ]
 
 export function Intro() {
   const [start, setStart] = useState(false)
-  const { user } = useUser()
+  const { user } = useSupabaseUser()
   const titleRef = useRef<HTMLParagraphElement | null>(null)
   const scrollContainerRef = useRef(null)
 
   useEffect(() => {
-    if (user) {
-      registerUser(user)
-    }
-
     if (typeof window !== 'undefined') {
       titleRef.current = document.createElement('p')
     }
@@ -111,19 +161,19 @@ export function Intro() {
             <SectionContent>
               <div className="text-primary prose">
                 <p>
-                  Hi, I’m Marlon Geovany Castro Mejia.{' '}
+                  Hi, I'm Marlon Geovany Castro Mejia.{' '}
                   {start &&
                     (!user ? (
-                      <Link href="/api/auth/login">Login with auth0</Link>
+                      <Link href="/login">Login</Link>
                     ) : (
-                      <Link href="/api/auth/logout">Logout</Link>
+                      <Link href="/logout">Logout</Link>
                     ))}{' '}
                   I’m a{' '}
                   <a
                     target="_blank"
                     rel="noopener noreferrer"
                     href="https://github.com/mgeovany"
-                    className="text-blue-600 hover:underline"
+                    className="text-orange-600 hover:underline"
                   >
                     software engineer
                   </a>{' '}
@@ -136,7 +186,7 @@ export function Intro() {
                     target="_blank"
                     rel="noopener noreferrer"
                     href="https://medium.com/@mgeovany"
-                    className="text-blue-600 hover:underline"
+                    className="text-orange-600 hover:underline"
                   >
                     technical blogs
                   </a>{' '}
@@ -172,15 +222,27 @@ export function Intro() {
             <SectionContent>
               <div className="flex flex-col gap-5 lg:gap-3">
                 <TableRow
-                  href={'/github'}
+                  href={'https://github.com/mgeovany'}
                   title={'GitHub'}
                   subtitle={'Follow'}
                   date={''}
                 />
                 <TableRow
-                  href={'/linkedIn'}
+                  href={'https://www.linkedin.com/in/m-geovany/'}
                   title={'LinkedIn'}
                   subtitle={'Follow'}
+                  date={''}
+                />
+                <TableRow
+                  href={'https://medium.com/@mgeovany'}
+                  title={'Medium'}
+                  subtitle={'Read'}
+                  date={''}
+                />
+                <TableRow
+                  href={'https://dev.to/mgeovany'}
+                  title={'Dev.to'}
+                  subtitle={'Read'}
                   date={''}
                 />
               </div>
@@ -193,11 +255,31 @@ export function Intro() {
               <div className="flex flex-col space-y-3">
                 {workHistory.map((job) => (
                   <TableRow
+                    rel={job.href ? 'noopener noreferrer' : ''}
+                    className={job.href ? 'hover:underline' : 'no-underline'}
                     href={job.href ?? ''}
+                    target={job.href ? '_blank' : '_self'}
                     title={job.title}
                     subtitle={job.subtitle}
                     date={job.date}
                     key={job.title}
+                  />
+                ))}
+              </div>
+            </SectionContent>
+          </SectionContainer>
+
+          <SectionContainer>
+            <SectionTitle>Projects</SectionTitle>
+            <SectionContent>
+              <div className="flex flex-col space-y-3">
+                {projects.map((project) => (
+                  <TableRow
+                    key={project.title}
+                    href={project.href}
+                    title={project.title}
+                    subtitle={project.subtitle}
+                    date={project.date}
                   />
                 ))}
               </div>

@@ -34,14 +34,14 @@ const routes = {
       url: 'bookmarks',
     }),
   },
-  projectIdeas: {
-    label: 'Project Ideas',
-    path: '/project-ideas',
+  projects: {
+    label: 'Projects',
+    path: '/projects',
     seo: extendSEO({
-      title: 'Project Ideas',
-      description: 'A collection of project ideas.',
+      title: 'Projects',
+      description: 'A collection of projects.',
       image: '/static/meta/me.webp',
-      url: 'project-ideas',
+      url: 'projects',
     }),
   },
 }

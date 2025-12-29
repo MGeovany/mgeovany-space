@@ -32,7 +32,7 @@ export function BlogDetail({ id }: { id: string }) {
           setData(data.data)
         }
       } catch (error) {
-        toast.error(`Error fetching data: ${error}`)
+        toast.error(`[Writing] Error fetching blog post: ${error}`)
       } finally {
         setLoading(false)
       }

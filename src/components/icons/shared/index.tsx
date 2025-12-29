@@ -155,3 +155,39 @@ export function UrlIcon({ ...props }: LucideProps) {
     </svg>
   )
 }
+
+export function MediumIcon({ ...props }: LucideProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      fill="white"
+      viewBox="0 0 30 30"
+      {...props}
+    >
+      <path
+        fill="white"
+        d="M8.5 7a8.5 8.5 0 1 0 0 17 8.5 8.5 0 1 0 0-17zM22 8a4 7.5 0 1 0 0 15 4 7.5 0 1 0 0-15zm6.5 1a1.5 6.5 0 1 0 0 13 1.5 6.5 0 1 0 0-13z"
+      />
+    </svg>
+  )
+}
+
+export function DevToIcon({ ...props }: LucideProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 48 48"
+      {...props}
+    >
+      <path
+        fill="white"
+        d="M42 37a5 5 0 0 1-5 5H11a5 5 0 0 1-5-5V11a5 5 0 0 1 5-5h26a5 5 0 0 1 5 5v26z"
+      />
+      <path d="M14.986 30.467H10.88V17.342h4.105a3.4 3.4 0 0 1 3.4 3.4v6.325a3.398 3.398 0 0 1-3.399 3.4zm-.103-2.445a1.2 1.2 0 0 0 1.2-1.2v-5.833a1.2 1.2 0 0 0-1.2-1.2H13.38v8.233h1.503zM26.391 19.617v-2.3h-5.046a1.5 1.5 0 0 0-1.5 1.5v10.134a1.5 1.5 0 0 0 1.5 1.5h5.046v-2.3h-4.247V25.03h2.615v-2.3h-2.615v-3.113h4.247zM37.73 17.32l-2.94 11.67c-.51 2.02-3.37 2.02-3.88 0l-2.95-11.67h2.58l2.31 9.14 2.3-9.14h2.58z" />
+    </svg>
+  )
+}

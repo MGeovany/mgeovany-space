@@ -2,9 +2,11 @@ import { LinkedinIcon } from 'lucide-react'
 
 import {
   BookMarkIcon,
+  DevToIcon,
   GithubIcon,
   HomeIcon,
   LoadingIcon,
+  MediumIcon,
   ProjectIcon,
   UrlIcon,
   WritingIcon,
@@ -19,4 +21,6 @@ export const Icons = {
   linkedIn: LinkedinIcon,
   loading: LoadingIcon,
   url: UrlIcon,
+  medium: MediumIcon,
+  devTo: DevToIcon,
 }

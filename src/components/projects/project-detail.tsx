@@ -34,7 +34,7 @@ export function ProjectDetail({ id }: { id: string }) {
           setData(data.data)
         }
       } catch (error) {
-        toast.error(`Error fetching data: ${error}`)
+        toast.error(`[Projects] Error fetching project idea: ${error}`)
       } finally {
         setLoading(false)
       }
