@@ -149,9 +149,8 @@ export async function GET(request: NextRequest) {
   let q = admin
     .from('posts')
     .select(
-      'id, title, slug, excerpt, status, published_at, updated_at, created_at'
+      'id, title, slug, excerpt, status, published_at, updated_at, created_at, source'
     )
-    .order('updated_at', { ascending: false })
 
   if (status) q = q.eq('status', status)
   if (query) q = q.or(`title.ilike.%${query}%,slug.ilike.%${query}%`)
@@ -159,7 +158,22 @@ export async function GET(request: NextRequest) {
   const { data, error } = await q
   if (error) return jsonError(error.message, 500)
 
-  return NextResponse.json({ data })
+  // Sort: published posts by published_at (newest first), others by updated_at (newest first)
+  const sorted = (data || []).sort((a, b) => {
+    // If both have published_at, sort by published_at
+    if (a.published_at && b.published_at) {
+      return (
+        new Date(b.published_at).getTime() - new Date(a.published_at).getTime()
+      )
+    }
+    // If only one has published_at, prioritize it
+    if (a.published_at && !b.published_at) return -1
+    if (!a.published_at && b.published_at) return 1
+    // If neither has published_at, sort by updated_at
+    return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+  })
+
+  return NextResponse.json({ data: sorted })
 }
 
 export async function POST(request: NextRequest) {
@@ -208,7 +222,7 @@ export async function POST(request: NextRequest) {
       updated_at: new Date().toISOString(),
     })
     .select(
-      'id, title, slug, excerpt, status, published_at, updated_at, created_at'
+      'id, title, slug, excerpt, status, source, published_at, updated_at, created_at'
     )
     .single()
 

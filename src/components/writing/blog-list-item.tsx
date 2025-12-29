@@ -1,6 +1,7 @@
 import { Button, Modal, Textarea, TextInput } from '@mantine/core'
 import axios from 'axios'
-import { Pencil, X } from 'lucide-react'
+import { formatDistanceToNowStrict } from 'date-fns'
+import { Calendar, ExternalLink, Pencil, X } from 'lucide-react'
 import { memo, useState } from 'react'
 import toast from 'react-hot-toast'
 
@@ -108,55 +109,98 @@ export const BlogListItem = memo<BlogListItemProps>(({ blog, active }) => {
     setEditModalOpen(true)
   }
 
+  const publishedDate = blog.published_at
+    ? formatDistanceToNowStrict(new Date(blog.published_at), {
+        addSuffix: true,
+      })
+    : null
+
   return (
     <>
-      <ListItem
-        key={blog.id}
-        title={blog.title}
-        byline={
-          <div className="flex items-center space-x-2">
-            {
-              imageBroken ? <Icons.url /> : null
-              /*  <Image
-            src={`https://www.google.com/s2/favicons?domain=${blog.url}`}
-            alt="favicon"
-            width={16}
-            height={16}
-            onError={() => setImageBroken(true)}
-            /> */
+      <div
+        className={`group relative rounded-lg border transition-all ${
+          active
+            ? 'border-neutral-700 bg-neutral-800 shadow-lg'
+            : 'border-neutral-800 bg-neutral-900/50 hover:border-neutral-700 hover:bg-neutral-900'
+        }`}
+      >
+        <div className="p-2">
+          <ListItem
+            key={blog.id}
+            title={blog.title}
+            description={
+              blog.excerpt ? (
+                <p className="line-clamp-2 text-sm text-neutral-400">
+                  {blog.excerpt}
+                </p>
+              ) : undefined
             }
-            <span> {blog.url ? new URL(blog.url).hostname : ''}</span>
-          </div>
-        }
-        leadingAccessory={
-          userRole === 'admin' ? (
-            <>
-              <GhostButton
-                aria-label="Delete blogs"
-                size={Size.smallSquare}
-                onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
-                  handleDeleteElement(e, blog)
-                }
-              >
-                <X size={16} />
-              </GhostButton>
-              <GhostButton
-                aria-label="Edit blogs"
-                size={Size.smallSquare}
-                onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
-                  handleEditElement(e)
-                }
-              >
-                <Pencil size={16} />
-              </GhostButton>
-            </>
-          ) : undefined
-        }
-        active={active}
-        href="/writing/[id]"
-        as={`/writing/${blog.id}`}
-        onClick={(e) => handleClick(e, blog)}
-      />
+            byline={
+              <div className="flex items-center gap-3 text-xs">
+                {blog.source && blog.source !== 'local' && (
+                  <div className="flex items-center gap-1.5 rounded-full bg-neutral-800 px-2 py-0.5">
+                    {blog.source === 'medium' && (
+                      <Icons.medium className="h-3 w-3" />
+                    )}
+                    {blog.source === 'devto' && (
+                      <Icons.devTo className="h-3 w-3" />
+                    )}
+                    <span className="text-[10px] capitalize text-neutral-400">
+                      {blog.source}
+                    </span>
+                  </div>
+                )}
+                {publishedDate && (
+                  <div className="flex items-center gap-1.5 text-neutral-500">
+                    <Calendar size={12} />
+                    <span>{publishedDate}</span>
+                  </div>
+                )}
+                {blog.url && (
+                  <div className="flex items-center gap-1.5 text-neutral-500">
+                    <ExternalLink size={12} />
+                    <span className="max-w-[120px] truncate">
+                      {new URL(blog.url).hostname.replace('www.', '')}
+                    </span>
+                  </div>
+                )}
+              </div>
+            }
+            leadingAccessory={
+              userRole === 'admin' && blog.source === 'local' ? (
+                <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                  <GhostButton
+                    aria-label="Edit blog"
+                    size={Size.smallSquare}
+                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      handleEditElement(e)
+                    }}
+                  >
+                    <Pencil size={14} />
+                  </GhostButton>
+                  <GhostButton
+                    aria-label="Delete blog"
+                    size={Size.smallSquare}
+                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      handleDeleteElement(e, blog)
+                    }}
+                  >
+                    <X size={14} />
+                  </GhostButton>
+                </div>
+              ) : undefined
+            }
+            active={active}
+            href="/writing/[id]"
+            as={`/writing/${blog.id}`}
+            onClick={(e) => handleClick(e, blog)}
+          />
+        </div>
+      </div>
       <Modal
         opened={editModalOpen}
         onClose={() => setEditModalOpen(false)}

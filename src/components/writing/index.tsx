@@ -26,7 +26,8 @@ export const WritingList = () => {
     ;(async () => {
       try {
         const response = await axios.get('/api/writings')
-        setData(response.data)
+
+        setData(response.data.data)
       } catch (error) {
         toast.error(`[Writing] Error fetching posts: ${error}`)
       } finally {
@@ -50,7 +51,7 @@ export const WritingList = () => {
     <ListContainer onRef={setScrollContainerRef}>
       <TitleBar scrollContainerRef={scrollContainerRef} title="Blogs" />
       <LayoutGroup>
-        <div className="lg:space-y-1 lg:p-3">
+        <div className="space-y-2 p-3">
           {data.length > 0 ? (
             data.map((content) => {
               const isActive = pathname === `/writing/${content.id}`

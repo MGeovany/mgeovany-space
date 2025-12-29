@@ -7,9 +7,9 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('posts')
-    .select('id, title, slug, excerpt, url, published_at')
+    .select('id, title, slug, excerpt, url, published_at, source')
     .eq('status', 'published')
-    .order('published_at', { ascending: false })
+    .order('published_at', { ascending: false, nullsFirst: false })
 
   console.log(data, 'data')
   if (error) {

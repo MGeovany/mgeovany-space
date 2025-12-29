@@ -1,11 +1,14 @@
 interface Blog {
-  id: number
+  id: string | number
   title: string
-  content: string
-  url?: string
+  content?: string
+  excerpt?: string | null
+  url?: string | null
   description?: string
-  createdAt: string
-  updatedAt: string
+  source?: 'local' | 'medium' | 'devto'
+  published_at?: string | null
+  createdAt?: string
+  updatedAt?: string
 }
 
 interface Bookmark {

@@ -3,22 +3,34 @@
 import axios from 'axios'
 import { formatDistanceToNowStrict } from 'date-fns'
 import {
+  Archive,
   Bold,
   Code,
   DoorOpen,
+  ExternalLink,
+  Eye,
   Italic,
   Link,
   List,
   ListOrdered,
   Loader2,
+  Lock,
+  Maximize2,
+  Minimize2,
+  MoreVertical,
   Plus,
   Quote,
+  RefreshCw,
+  Save,
   Search,
+  Trash2,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 
 import { Button, GhostButton, PrimaryButton, Size } from '@/components/button'
+import { Icons } from '@/components/icons'
+import { MarkdownRenderer } from '@/components/markdown-renderer'
 import { useSupabaseUser } from '@/hooks/useSupabaseUser'
 import { isAllowedEditorEmail } from '@/lib/editor/allowed'
 import { createClient } from '@/lib/supabase/client'
@@ -31,6 +43,7 @@ type PostListItem = {
   slug: string
   excerpt: string | null
   status: PostStatus
+  source: 'local' | 'medium' | 'devto'
   published_at: string | null
   updated_at: string
   created_at: string
@@ -38,6 +51,7 @@ type PostListItem = {
 
 type PostDetail = PostListItem & {
   content: string | null
+  content_html: string | null
   url: string | null
   canonical_url: string | null
 }
@@ -114,6 +128,18 @@ async function updatePost(
   return response.data.data
 }
 
+async function deletePost(id: string): Promise<void> {
+  const authHeaders = await getAuthHeaders()
+  await axios.delete(`/api/editor/posts/${id}`, {
+    withCredentials: true,
+    headers: authHeaders,
+  })
+}
+
+async function archivePost(id: string): Promise<PostDetail> {
+  return updatePost(id, { status: 'archived' })
+}
+
 function StatusTabs({
   value,
   onChange,
@@ -127,7 +153,7 @@ function StatusTabs({
     { label: 'Archived', value: 'archived' },
   ]
   return (
-    <div className="flex w-fit items-center rounded-lg border border-black/10 bg-white p-1 dark:border-white/10 dark:bg-neutral-950">
+    <div className="flex items-center rounded-lg border border-neutral-800 bg-neutral-900 p-1">
       {options.map((opt) => {
         const active = value === opt.value
         return (
@@ -135,10 +161,10 @@ function StatusTabs({
             key={opt.value}
             onClick={() => onChange(opt.value)}
             className={[
-              'rounded-md px-3 py-1.5 text-xs font-semibold transition',
+              'rounded-md px-3 py-1.5 text-xs font-semibold transition-colors',
               active
-                ? 'bg-black text-white dark:bg-white dark:text-black'
-                : 'text-black/70 hover:text-black dark:text-white/70 dark:hover:text-white',
+                ? 'bg-neutral-800 text-white'
+                : 'text-neutral-400 hover:text-neutral-300',
             ].join(' ')}
           >
             {opt.label}
@@ -237,10 +263,7 @@ function FormatToolbar({
 
   return (
     <div className="flex items-center gap-1 rounded-lg border border-neutral-800 bg-neutral-900 p-1">
-      <ToolbarButton
-        onClick={() => handleFormat('bold')}
-        title="Bold (Ctrl+B)"
-      >
+      <ToolbarButton onClick={() => handleFormat('bold')} title="Bold (Ctrl+B)">
         <Bold size={16} />
       </ToolbarButton>
       <ToolbarButton
@@ -292,6 +315,10 @@ export default function EditorPage() {
   const [newTitle, setNewTitle] = useState('')
 
   const [saving, setSaving] = useState(false)
+  const [focusMode, setFocusMode] = useState(false)
+  const [showMenuForId, setShowMenuForId] = useState<string | null>(null)
+  const [syncingMedium, setSyncingMedium] = useState(false)
+  const [syncingDevto, setSyncingDevto] = useState(false)
   const contentTextareaRef = useRef<HTMLTextAreaElement>(null)
 
   async function signInWithGoogle() {
@@ -382,6 +409,140 @@ export default function EditorPage() {
     }
   }
 
+  async function handleSave(asStatus: 'draft' | 'published') {
+    if (!detail?.id) return
+    setSaving(true)
+    try {
+      const updatedPost = await updatePost(detail.id, { status: asStatus })
+      setDetail(updatedPost)
+      await loadList(asStatus, query)
+      toast.success(
+        `[Editor] Post ${asStatus === 'published' ? 'published' : 'saved as draft'} successfully`
+      )
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.error ?? error?.message ?? 'Unknown error'
+      toast.error(`[Editor] Could not save: ${errorMessage}`)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleDelete(id: string) {
+    toast(
+      (t) => (
+        <div className="mx-auto max-w-md rounded-lg bg-neutral-900 p-4 text-white">
+          <h3 className="text-lg font-semibold">Delete post?</h3>
+          <p className="mt-2 text-sm text-neutral-300">
+            Are you sure you want to delete this post? This action cannot be
+            undone.
+          </p>
+          <div className="mt-4 flex justify-end gap-2">
+            <button
+              className="rounded-lg bg-neutral-700 px-4 py-2 text-neutral-200 transition-colors hover:bg-neutral-600 focus:outline-none"
+              onClick={() => toast.dismiss(t.id)}
+            >
+              Cancel
+            </button>
+            <button
+              className="rounded-lg bg-red-500 px-4 py-2 text-white transition-colors hover:bg-red-600 focus:outline-none"
+              onClick={async () => {
+                toast.dismiss(t.id)
+                try {
+                  await deletePost(id)
+                  if (selectedId === id) {
+                    setSelectedId(null)
+                    setDetail(null)
+                  }
+                  await loadList(status, query)
+                  toast.success('[Editor] Post deleted successfully')
+                } catch (error: any) {
+                  const errorMessage =
+                    error?.response?.data?.error ??
+                    error?.message ??
+                    'Unknown error'
+                  toast.error(`[Editor] Could not delete: ${errorMessage}`)
+                }
+                setShowMenuForId(null)
+              }}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        duration: Infinity,
+        position: 'top-center',
+      }
+    )
+  }
+
+  async function handleArchive(id: string) {
+    try {
+      await archivePost(id)
+      if (selectedId === id) {
+        setSelectedId(null)
+        setDetail(null)
+      }
+      await loadList(status, query)
+      toast.success('[Editor] Post archived successfully')
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.error ?? error?.message ?? 'Unknown error'
+      toast.error(`[Editor] Could not archive: ${errorMessage}`)
+    }
+    setShowMenuForId(null)
+  }
+
+  async function syncMedium() {
+    setSyncingMedium(true)
+    try {
+      const response = await axios.post('/api/writings/sync-medium', {
+        mediumUsername: 'mgeovany',
+      })
+      if (response.data.success) {
+        toast.success(
+          `[Editor] Synced ${response.data.synced} posts from Medium`
+        )
+        await loadList(status, query)
+      }
+      if (response.data.errors && response.data.errors.length > 0) {
+        console.error('[Editor] Sync errors:', response.data.errors)
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.error ?? error?.message ?? 'Unknown error'
+      toast.error(`[Editor] Could not sync Medium: ${errorMessage}`)
+    } finally {
+      setSyncingMedium(false)
+    }
+  }
+
+  async function syncDevto() {
+    setSyncingDevto(true)
+    try {
+      const response = await axios.post('/api/writings/sync-devto', {
+        devtoUsername: 'mgeovany',
+      })
+      if (response.data.success) {
+        toast.success(
+          `[Editor] Synced ${response.data.synced} posts from Dev.to`
+        )
+        await loadList(status, query)
+      }
+      if (response.data.errors && response.data.errors.length > 0) {
+        console.error('[Editor] Sync errors:', response.data.errors)
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.error ?? error?.message ?? 'Unknown error'
+      toast.error(`[Editor] Could not sync Dev.to: ${errorMessage}`)
+    } finally {
+      setSyncingDevto(false)
+    }
+  }
+
   useEffect(() => {
     if (!loading && user && allowed) {
       loadList('draft', '')
@@ -395,6 +556,14 @@ export default function EditorPage() {
   useEffect(() => {
     if (user && allowed) loadList(status, query)
   }, [status])
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    if (!showMenuForId) return
+    const handleClickOutside = () => setShowMenuForId(null)
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [showMenuForId])
 
   const headerRight = (
     <div className="flex items-center gap-2">
@@ -460,221 +629,384 @@ export default function EditorPage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-white text-black dark:bg-neutral-950 dark:text-white">
-      <div className="sticky top-0 z-10 border-b border-black/10 bg-white/80 backdrop-blur dark:border-white/10 dark:bg-neutral-950/80">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
-            <div className="text-md font-bold tracking-tight">Editor</div>
+    <div className="min-h-screen w-full bg-neutral-950 text-white">
+      {/* Minimal Header */}
+      <div className="sticky top-0 z-10 border-b border-neutral-800 bg-neutral-950/95 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+          <div className="flex items-center gap-4">
+            <div className="text-sm font-semibold text-neutral-300">Editor</div>
             <StatusTabs value={status} onChange={setStatus} />
           </div>
-          {headerRight}
+          <div className="flex items-center gap-3">
+            <div className="hidden text-xs text-neutral-500 sm:block">
+              {email}
+            </div>
+            <button
+              onClick={syncMedium}
+              disabled={syncingMedium || syncingDevto}
+              className="flex h-8 items-center gap-2 rounded border border-neutral-800 bg-neutral-900 px-3 text-xs text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="Sync Medium"
+              title="Sync posts from Medium"
+            >
+              <RefreshCw
+                size={14}
+                className={syncingMedium ? 'animate-spin' : ''}
+              />
+              <span className="hidden sm:inline">Sync Medium</span>
+            </button>
+            <button
+              onClick={syncDevto}
+              disabled={syncingMedium || syncingDevto}
+              className="flex h-8 items-center gap-2 rounded border border-neutral-800 bg-neutral-900 px-3 text-xs text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="Sync Dev.to"
+              title="Sync posts from Dev.to"
+            >
+              <RefreshCw
+                size={14}
+                className={syncingDevto ? 'animate-spin' : ''}
+              />
+              <span className="hidden sm:inline">Sync Dev.to</span>
+            </button>
+            <button
+              onClick={() => setFocusMode(!focusMode)}
+              className="flex h-8 w-8 items-center justify-center rounded text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
+              aria-label={focusMode ? 'Exit focus mode' : 'Enter focus mode'}
+              title={focusMode ? 'Exit focus mode' : 'Enter focus mode'}
+            >
+              {focusMode ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+            </button>
+            <button
+              onClick={signOut}
+              className="flex h-8 w-8 items-center justify-center rounded text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
+              aria-label="Sign out"
+            >
+              <DoorOpen size={16} />
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-4 py-4 lg:grid-cols-[360px_1fr]">
-        {/* Left: List */}
-        <div className="rounded-2xl border border-black/10 bg-white p-3 dark:border-white/10 dark:bg-neutral-950">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex flex-1 items-center gap-2 rounded-lg border border-black/10 bg-white px-2 py-1.5 dark:border-white/10 dark:bg-neutral-950">
-              <Search size={14} className="opacity-60" />
+      <div className="mx-auto flex max-w-6xl gap-6 px-6 py-6">
+        {/* Left: Minimal Sidebar */}
+        {!focusMode && (
+          <div className="flex h-[calc(100vh-120px)] w-64 shrink-0 flex-col overflow-hidden">
+            <div className="flex shrink-0 items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2">
+              <Search size={14} className="text-neutral-500" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') loadList(status, query)
                 }}
-                placeholder="Search by title or slug…"
-                className="placeholder:text-black/40dark:placeholder:text-white/30 w-full bg-transparent text-sm outline-none ring-offset-0"
+                placeholder="Search…"
+                className="w-full bg-transparent text-sm text-white outline-none placeholder:text-neutral-500"
               />
+              <button
+                onClick={() => setShowCreate((v) => !v)}
+                className="flex h-6 w-6 items-center justify-center rounded text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
+                aria-label="New post"
+              >
+                <Plus size={14} />
+              </button>
             </div>
-            <GhostButton
-              size={Size.smallSquare}
-              aria-label="New post"
-              onClick={() => setShowCreate((v) => !v)}
-            >
-              <Plus size={16} />
-            </GhostButton>
-          </div>
 
-          {showCreate && (
-            <div className="mt-3 rounded-xl border border-black/10 p-3 dark:border-white/10">
-              <FieldLabel>Title</FieldLabel>
-              <input
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="My new post…"
-                className="mt-1 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-black/30 dark:border-white/10 dark:bg-neutral-950 dark:focus:border-white/30"
-              />
-              <div className="mt-3 flex gap-2">
-                <PrimaryButton
-                  size={Size.small}
-                  disabled={createLoading || !newTitle.trim()}
-                  onClick={createPost}
-                >
-                  {createLoading ? 'Creating…' : 'Create draft'}
-                </PrimaryButton>
-                <Button
-                  size={Size.small}
-                  onClick={() => {
-                    setShowCreate(false)
-                    setNewTitle('')
+            {showCreate && (
+              <div className="mt-3 shrink-0 rounded-lg border border-neutral-800 bg-neutral-900 p-3">
+                <input
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  placeholder="New post title…"
+                  className="w-full rounded border border-neutral-800 bg-neutral-950 px-3 py-2 text-sm text-white outline-none placeholder:text-neutral-500 focus:border-neutral-700"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && newTitle.trim()) {
+                      createPost()
+                    }
                   }}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          )}
-
-          <div className="mt-3">
-            {listLoading ? (
-              <div className="flex items-center justify-center py-10 text-black/60 dark:text-white/60">
-                <Loader2 className="animate-spin" />
-              </div>
-            ) : items.length === 0 ? (
-              <div className="py-10 text-center text-sm text-black/60 dark:text-white/60">
-                No posts found in this section.
-              </div>
-            ) : (
-              <div className="space-y-1">
-                {items.map((it) => {
-                  const active = it.id === selectedId
-                  return (
-                    <button
-                      key={it.id}
-                      onClick={() => setSelectedId(it.id)}
-                      className={[
-                        'w-full rounded-xl border px-3 py-2 text-left transition',
-                        active
-                          ? 'border-black/20 bg-black/[0.03] dark:border-white/20 dark:bg-white/[0.05]'
-                          : 'border-transparent hover:border-black/10 hover:bg-black/[0.02] dark:hover:border-white/10 dark:hover:bg-white/[0.03]',
-                      ].join(' ')}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <div className="truncate text-sm font-semibold">
-                            {it.title}
-                          </div>
-                          <div className="truncate text-xs text-black/50 dark:text-white/50">
-                            {it.slug}
-                          </div>
-                        </div>
-                        <div className="shrink-0 text-[11px] text-black/50 dark:text-white/50">
-                          {formatDistanceToNowStrict(new Date(it.updated_at), {
-                            addSuffix: true,
-                          })}
-                        </div>
-                      </div>
-                    </button>
-                  )
-                })}
+                />
+                <div className="mt-2 flex gap-2">
+                  <button
+                    onClick={createPost}
+                    disabled={createLoading || !newTitle.trim()}
+                    className="rounded bg-neutral-800 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {createLoading ? 'Creating…' : 'Create'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowCreate(false)
+                      setNewTitle('')
+                    }}
+                    className="rounded border border-neutral-800 px-3 py-1.5 text-xs font-medium text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             )}
-          </div>
-        </div>
 
-        {/* Right: Editor */}
-        <div className="rounded-2xl border border-black/10 bg-white dark:border-white/10 dark:bg-neutral-950">
+            <div className="mt-4 flex-1 overflow-y-auto">
+              {listLoading ? (
+                <div className="flex items-center justify-center py-10">
+                  <Loader2
+                    className="animate-spin text-neutral-500"
+                    size={20}
+                  />
+                </div>
+              ) : items.length === 0 ? (
+                <div className="py-10 text-center text-xs text-neutral-500">
+                  No posts found
+                </div>
+              ) : (
+                <div className="space-y-1 pb-2">
+                  {items.map((it) => {
+                    const active = it.id === selectedId
+                    const showMenu = showMenuForId === it.id
+                    return (
+                      <div
+                        key={it.id}
+                        className={[
+                          'group relative flex items-center gap-2 rounded-lg transition-colors',
+                          active ? 'bg-neutral-800' : 'hover:bg-neutral-900',
+                        ].join(' ')}
+                      >
+                        <button
+                          onClick={() => setSelectedId(it.id)}
+                          className={[
+                            'flex-1 px-3 py-2 text-left transition-colors',
+                            active
+                              ? 'text-white'
+                              : 'text-neutral-400 hover:text-neutral-300',
+                          ].join(' ')}
+                        >
+                          <div className="flex min-w-0 items-start gap-2">
+                            <div className="min-w-0 flex-1">
+                              <div className="line-clamp-2 break-words text-sm font-medium">
+                                {it.title}
+                              </div>
+                            </div>
+                            {it.source && it.source !== 'local' && (
+                              <div className="flex shrink-0 items-center gap-1 rounded-full bg-neutral-700 px-1.5 py-0.5">
+                                {it.source === 'medium' && (
+                                  <Icons.medium className="h-3 w-3" />
+                                )}
+                                {it.source === 'devto' && (
+                                  <Icons.devTo className="h-3 w-3" />
+                                )}
+                                <span className="text-[10px] text-neutral-400">
+                                  {it.source}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="truncate text-xs text-neutral-500">
+                            {formatDistanceToNowStrict(
+                              new Date(it.updated_at),
+                              {
+                                addSuffix: true,
+                              }
+                            )}
+                          </div>
+                        </button>
+                        <div className="relative">
+                          {(it.source === 'local' ||
+                            status === 'published') && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setShowMenuForId(showMenu ? null : it.id)
+                              }}
+                              className="mr-2 flex h-8 w-8 items-center justify-center rounded text-neutral-500 opacity-0 transition-opacity hover:bg-neutral-800 hover:text-white group-hover:opacity-100"
+                              aria-label="Options"
+                            >
+                              <MoreVertical size={14} />
+                            </button>
+                          )}
+                          {showMenu &&
+                            (it.source === 'local' ||
+                              status === 'published') && (
+                              <div className="absolute right-2 top-10 z-50 rounded-lg border border-neutral-800 bg-neutral-900 shadow-lg">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleArchive(it.id)
+                                  }}
+                                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-neutral-300 transition-colors hover:bg-neutral-800"
+                                >
+                                  <Archive size={14} />
+                                  Archive
+                                </button>
+                                {it.source === 'local' && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleDelete(it.id)
+                                    }}
+                                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-400 transition-colors hover:bg-neutral-800"
+                                  >
+                                    <Trash2 size={14} />
+                                    Delete
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Right: Focused Editor */}
+        <div className="flex-1">
           {!selectedId ? (
-            <div className="flex items-center justify-center p-10 text-sm text-black/60 dark:text-white/60">
-              Select a post to edit.
+            <div className="flex h-[calc(100vh-120px)] items-center justify-center text-sm text-neutral-500">
+              Select a post to edit
             </div>
           ) : detailLoading || !detail ? (
-            <div className="flex items-center justify-center p-10 text-black/60 dark:text-white/60">
-              <Loader2 className="animate-spin" />
+            <div className="flex h-[calc(100vh-120px)] items-center justify-center">
+              <Loader2 className="animate-spin text-neutral-500" />
+            </div>
+          ) : detail.source && detail.source !== 'local' ? (
+            // Read-only view for synced posts
+            <div className="flex h-[calc(100vh-120px)] flex-col overflow-y-auto">
+              <div className="mb-6 flex items-center gap-3 rounded-lg border border-neutral-800 bg-neutral-900/50 px-4 py-3">
+                <Lock size={16} className="text-neutral-400" />
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-neutral-400">
+                    This post is synced from
+                  </span>
+                  {detail.source === 'medium' && (
+                    <Icons.medium className="h-4 w-4" />
+                  )}
+                  {detail.source === 'devto' && (
+                    <Icons.devTo className="h-4 w-4" />
+                  )}
+                  <span className="text-sm font-medium capitalize text-neutral-300">
+                    {detail.source}
+                  </span>
+                  <span className="text-sm text-neutral-400">
+                    and cannot be edited
+                  </span>
+                </div>
+                {detail.url && (
+                  <a
+                    href={detail.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ml-auto flex items-center gap-2 rounded border border-neutral-800 bg-neutral-800 px-3 py-1.5 text-xs text-neutral-300 transition-colors hover:bg-neutral-700"
+                  >
+                    <ExternalLink size={12} />
+                    View original
+                  </a>
+                )}
+              </div>
+
+              <h1 className="mb-4 text-3xl font-bold text-white">
+                {detail.title}
+              </h1>
+
+              {detail.excerpt && (
+                <p className="mb-6 text-lg leading-relaxed text-neutral-400">
+                  {detail.excerpt}
+                </p>
+              )}
+
+              {(detail.content || detail.content_html) && (
+                <div className="prose prose-invert max-w-none prose-headings:text-neutral-100 prose-p:text-neutral-300 prose-a:text-blue-400 prose-strong:text-neutral-100 prose-code:text-neutral-200 prose-pre:border prose-pre:border-neutral-800 prose-pre:bg-neutral-900">
+                  {detail.content_html ? (
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: detail.content_html,
+                      }}
+                    />
+                  ) : (
+                    <MarkdownRenderer>{detail.content || ''}</MarkdownRenderer>
+                  )}
+                </div>
+              )}
+
+              <div className="mt-8 border-t border-neutral-800 pt-4 text-xs text-neutral-500">
+                Published{' '}
+                {detail.published_at
+                  ? formatDistanceToNowStrict(new Date(detail.published_at), {
+                      addSuffix: true,
+                    })
+                  : 'N/A'}
+              </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
-              <div className="border-b border-black/10 p-4 lg:border-b-0 lg:border-r dark:border-white/10">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <div className="text-xs text-black/50 dark:text-white/50">
-                      Slug
-                    </div>
-                    <div className="truncate text-sm font-semibold">
-                      {detail.slug}
-                    </div>
-                  </div>
-                </div>
+            // Editable view for local posts
+            <div className="flex h-[calc(100vh-120px)] flex-col">
+              {/* Title Input */}
+              <input
+                value={detail.title}
+                onChange={(e) =>
+                  setDetail({ ...detail, title: e.target.value })
+                }
+                onBlur={() => savePatch({ title: detail.title })}
+                placeholder="Post title…"
+                className="mb-4 bg-transparent text-3xl font-bold text-white outline-none placeholder:text-neutral-600"
+              />
 
-                <div className="mt-4 space-y-4">
-                  <div className="space-y-1">
-                    <FieldLabel>Title</FieldLabel>
-                    <input
-                      value={detail.title}
-                      onChange={(e) =>
-                        setDetail({ ...detail, title: e.target.value })
-                      }
-                      onBlur={() => savePatch({ title: detail.title })}
-                      className="w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-black/30 dark:border-white/10 dark:bg-neutral-950 dark:focus:border-white/30"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <FieldLabel>Excerpt</FieldLabel>
-                    <textarea
-                      value={detail.excerpt ?? ''}
-                      onChange={(e) =>
-                        setDetail({ ...detail, excerpt: e.target.value })
-                      }
-                      onBlur={() =>
-                        savePatch({ excerpt: detail.excerpt ?? '' })
-                      }
-                      rows={3}
-                      className="w-full resize-y rounded-lg border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-black/30 dark:border-white/10 dark:bg-neutral-950 dark:focus:border-white/30"
-                      placeholder="Short summary…"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <FieldLabel>Content (Markdown)</FieldLabel>
-                    <textarea
-                      value={detail.content ?? ''}
-                      onChange={(e) =>
-                        setDetail({ ...detail, content: e.target.value })
-                      }
-                      onBlur={() =>
-                        savePatch({ content: detail.content ?? '' })
-                      }
-                      rows={18}
-                      className="w-full resize-y rounded-lg border border-black/10 bg-white px-3 py-2 font-mono text-xs outline-none focus:border-black/30 dark:border-white/10 dark:bg-neutral-950 dark:focus:border-white/30"
-                      placeholder="# My post…"
-                    />
-                    <div className="flex items-center justify-between text-xs text-black/50 dark:text-white/50">
-                      <span>
-                        Last edited:{' '}
-                        {formatDistanceToNowStrict(
-                          new Date(detail.updated_at),
-                          {
-                            addSuffix: true,
-                          }
-                        )}
-                      </span>
-                      <button
-                        onClick={() => selectedId && loadDetail(selectedId)}
-                        className="underline underline-offset-2 hover:text-black dark:hover:text-white"
-                      >
-                        Reload
-                      </button>
-                    </div>
-                  </div>
+              {/* Toolbar */}
+              <div className="mb-4 flex items-center justify-between gap-4">
+                <FormatToolbar
+                  textareaRef={contentTextareaRef}
+                  onFormat={(newContent) => {
+                    setDetail({ ...detail, content: newContent })
+                    savePatch({ content: newContent })
+                  }}
+                />
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleSave('draft')}
+                    disabled={saving}
+                    className="flex items-center gap-2 rounded border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Save size={14} />
+                    Save Draft
+                  </button>
+                  <button
+                    onClick={() => handleSave('published')}
+                    disabled={saving}
+                    className="flex items-center gap-2 rounded bg-white px-3 py-1.5 text-sm font-medium text-neutral-950 transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Eye size={14} />
+                    Publish
+                  </button>
                 </div>
               </div>
 
-              <div className="p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <div className="text-xs font-semibold text-black/60 dark:text-white/60">
-                    Preview
-                  </div>
-                  <div className="text-xs text-black/40 dark:text-white/40">
-                    {detail.content?.length ?? 0} chars
-                  </div>
+              {/* Content Editor */}
+              <textarea
+                ref={contentTextareaRef}
+                value={detail.content ?? ''}
+                onChange={(e) =>
+                  setDetail({ ...detail, content: e.target.value })
+                }
+                onBlur={() => savePatch({ content: detail.content ?? '' })}
+                placeholder="Start writing…"
+                className="flex-1 resize-none bg-transparent text-base leading-relaxed text-neutral-300 outline-none placeholder:text-neutral-600"
+              />
+
+              {/* Footer */}
+              <div className="mt-4 flex items-center justify-between border-t border-neutral-800 pt-4 text-xs text-neutral-500">
+                <div className="flex items-center gap-4">
+                  {saving && (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="animate-spin" size={12} />
+                      Saving…
+                    </span>
+                  )}
                 </div>
-                <div className="prose max-w-none dark:prose-invert">
-                  <MarkdownRenderer
-                    children={detail.content ?? ''}
-                    variant="longform"
-                  />
+                <div>
+                  {detail.content?.length ?? 0} chars • Last edited{' '}
+                  {formatDistanceToNowStrict(new Date(detail.updated_at), {
+                    addSuffix: true,
+                  })}
                 </div>
               </div>
             </div>

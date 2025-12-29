@@ -142,7 +142,7 @@ export async function GET(
   const { data, error } = await admin
     .from('posts')
     .select(
-      'id, title, slug, excerpt, content, status, url, canonical_url, published_at, updated_at, created_at'
+      'id, title, slug, excerpt, content, content_html, status, source, url, canonical_url, published_at, updated_at, created_at'
     )
     .eq('id', context.params.id)
     .single()
@@ -165,6 +165,17 @@ export async function PATCH(
     return jsonError(e?.message ?? 'Server misconfigured', 500)
   }
 
+  // Check if post exists
+  const { data: existingPost, error: fetchError } = await admin
+    .from('posts')
+    .select('source')
+    .eq('id', context.params.id)
+    .single()
+
+  if (fetchError) {
+    return jsonError('Post not found', 404)
+  }
+
   const body = await request.json().catch(() => null)
 
   const title = typeof body?.title === 'string' ? body.title.trim() : undefined
@@ -172,6 +183,19 @@ export async function PATCH(
     typeof body?.excerpt === 'string' ? body.excerpt.trim() : undefined
   const content = typeof body?.content === 'string' ? body.content : undefined
   const status = body?.status as PostStatus | undefined
+
+  // Allow status changes (archive/unarchive) for all posts
+  // But block content edits for external sources
+  const isExternal = existingPost?.source && existingPost.source !== 'local'
+  if (
+    isExternal &&
+    (title !== undefined || excerpt !== undefined || content !== undefined)
+  ) {
+    return jsonError(
+      'This post is synced from an external source and cannot be edited',
+      403
+    )
+  }
 
   const patch: Record<string, any> = {
     updated_at: new Date().toISOString(),
@@ -193,7 +217,7 @@ export async function PATCH(
     .update(patch)
     .eq('id', context.params.id)
     .select(
-      'id, title, slug, excerpt, content, status, url, canonical_url, published_at, updated_at, created_at'
+      'id, title, slug, excerpt, content, content_html, status, source, url, canonical_url, published_at, updated_at, created_at'
     )
     .single()
 
