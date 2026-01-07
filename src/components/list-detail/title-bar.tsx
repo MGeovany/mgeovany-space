@@ -123,14 +123,14 @@ export function TitleBar({
           boxShadow: `0 1px 3px rgba(0,0,0,${currentScrollOffset})`,
           minHeight: '48px',
         }}
-        className={`filter-blur sticky top-0 z-10 flex flex-col justify-center px-3 py-2 dark:border-b dark:border-gray-900`}
+        className="filter-blur sticky top-0 z-10 flex flex-col justify-center px-3 py-2"
       >
         <div className="flex flex-none items-center justify-between">
           <span className="flex items-center space-x-3">
             {globalMenu && (
               <span
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex cursor-pointer items-center justify-center rounded-md p-2 hover:bg-gray-200 lg:hidden dark:hover:bg-gray-800"
+                className="hover:bg-gray-200 dark:hover:bg-gray-800 flex cursor-pointer items-center justify-center rounded-md p-2 lg:hidden"
               >
                 {isOpen ? (
                   <X size={16} className="text-primary" />
@@ -143,7 +143,7 @@ export function TitleBar({
             {backButton && (
               <Link
                 href={backButtonHref ?? ''}
-                className="text-primary flex items-center justify-center rounded-md p-2 hover:bg-gray-200 lg:hidden dark:hover:bg-gray-800"
+                className="hover:bg-gray-200 dark:hover:bg-gray-800 flex items-center justify-center rounded-md p-2 text-primary lg:hidden"
               >
                 <ArrowLeft size={16} className="text-primary" />
               </Link>
@@ -158,7 +158,7 @@ export function TitleBar({
                     }
                   : {}
               }
-              className="text-primary line-clamp-1 transform-gpu text-sm font-bold"
+              className="line-clamp-1 transform-gpu text-sm font-bold text-primary"
             >
               {title}
             </h2>

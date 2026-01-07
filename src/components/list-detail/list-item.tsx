@@ -27,39 +27,29 @@ export function ListItem({
       href={href}
       as={as}
       onClick={onClick && onClick}
-      className={`flex space-x-3 border-b border-gray-100 px-3.5 py-3 text-sm lg:rounded-lg lg:border-none lg:py-2 dark:border-gray-900 ${
-        active
-          ? 'bg-black dark:bg-gray-700'
-          : 'sm:hover:bg-gray-200 sm:dark:hover:bg-gray-800'
+      className={`flex space-x-3 rounded-lg px-3.5 py-3 text-sm transition-colors ${
+        active ? 'bg-neutral-900/40' : 'hover:bg-neutral-900/30'
       }`}
     >
       {leadingAccessory && <>{leadingAccessory}</>}
       <div className="flex flex-col justify-center space-y-1">
         <div
           className={`line-clamp-3 font-medium ${
-            active ? 'text-white' : 'text-gray-1000 dark:text-gray-100'
+            active ? 'text-neutral-50' : 'text-neutral-100'
           }`}
         >
           {title}
         </div>
         {description && (
           <div
-            className={`line-clamp-2 ${
-              active
-                ? 'text-white text-opacity-80'
-                : 'text-gray-1000 text-opacity-60 dark:text-white'
-            }`}
+            className={`line-clamp-2 ${active ? 'text-neutral-300' : 'text-neutral-400'}`}
           >
             {description}
           </div>
         )}
         {byline && (
           <div
-            className={`line-clamp-1 ${
-              active
-                ? 'text-white text-opacity-60'
-                : 'text-gray-1000 text-opacity-40 dark:text-white dark:text-opacity-60'
-            }`}
+            className={`line-clamp-1 ${active ? 'text-neutral-400' : 'text-neutral-500'}`}
           >
             {byline}
           </div>

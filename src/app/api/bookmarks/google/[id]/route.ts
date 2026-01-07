@@ -50,4 +50,3 @@ export async function PATCH(
     return jsonError(error.message || 'Failed to update bookmark', 500)
   }
 }
-

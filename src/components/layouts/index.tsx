@@ -37,9 +37,15 @@ export function SiteLayout({ children }: { children: ReactNode }) {
   const shouldHideSidebar = pathname?.startsWith('/editor')
 
   return (
-    <div className="relative flex h-full min-h-screen w-full">
+    <div className="relative flex h-screen w-full">
       {!shouldHideSidebar && <Sidebar />}
-      <div className="flex flex-1">{children}</div>
+      <div
+        className={`flex flex-1 ${
+          shouldHideSidebar ? 'max-h-screen overflow-y-auto' : ''
+        }`}
+      >
+        {children}
+      </div>
     </div>
   )
 }

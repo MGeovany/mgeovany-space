@@ -14,7 +14,7 @@ import { registerUser } from '@/services/api/register-user'
 function SectionTitle(props: any) {
   return (
     <h4
-      className="col-span-2 pt-8 text-lg font-extrabold text-black md:pt-0 md:text-right md:text-base md:font-normal md:text-opacity-40 dark:text-white"
+      className="col-span-2 pt-8 text-lg font-extrabold text-black dark:text-white md:pt-0 md:text-right md:text-base md:font-normal md:text-opacity-40"
       {...props}
     />
   )
@@ -39,10 +39,10 @@ function TableRow({ href, title, subtitle, date }: TableRowProps) {
       href={href}
       className="group flex flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-4"
     >
-      <strong className="line-clamp-2 font-medium text-gray-1000 group-hover:text-blue-600 group-hover:underline dark:text-gray-100 dark:group-hover:text-blue-500">
+      <strong className="line-clamp-2 font-medium text-neutral-100 group-hover:text-blue-500 group-hover:underline">
         {title}
       </strong>
-      <span className="hidden flex-1 shrink border-t border-dashed border-gray-300 sm:flex dark:border-gray-800" />
+      <span className="hidden flex-1 shrink border-t border-dashed border-neutral-900 sm:flex" />
       {subtitle && <span className="text-tertiary flex-none">{subtitle}</span>}
       {date && (
         <span className="text-quaternary flex-none font-mono">{date}</span>
@@ -159,9 +159,9 @@ export function Intro() {
           <SectionContainer>
             <SectionTitle />
             <SectionContent>
-              <div className="text-primary prose">
+              <div className="prose text-primary">
                 <p>
-                  Hi, I'm Marlon Geovany Castro Mejia.{' '}
+                  Hi, I&apos;m Marlon Geovany Castro Mejia.{' '}
                   {start &&
                     (!user ? (
                       <Link href="/login">Login</Link>

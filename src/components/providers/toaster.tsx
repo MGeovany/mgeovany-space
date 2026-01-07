@@ -9,13 +9,13 @@ export function Toast() {
       containerClassName=""
       containerStyle={{}}
       toastOptions={{
-        className: 'bg-white dark:bg-gray-700 text-primary',
+        className: 'bg-neutral-900 border border-neutral-800 text-white',
         duration: 2000,
         success: {
           duration: 2000,
           iconTheme: {
             primary: 'green',
-            secondary: 'black',
+            secondary: 'white',
           },
         },
         error: {

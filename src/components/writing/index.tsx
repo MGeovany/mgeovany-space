@@ -64,7 +64,7 @@ export const WritingList = () => {
             })
           ) : (
             <div className="flex h-full flex-1 items-center justify-center">
-              <h1 className="text-md text-gray-500">No blogs found</h1>
+              <h1 className="text-md text-neutral-500">No blogs found</h1>
             </div>
           )}
         </div>

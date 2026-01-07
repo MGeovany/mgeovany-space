@@ -31,9 +31,19 @@ function ThisAddBookmarkDialog() {
           <Plus size={16} />
         </GhostButton>
       </div>
-      <Modal opened={opened} onClose={close} centered padding={'lg'}>
+      <Modal
+        opened={opened}
+        onClose={close}
+        centered
+        padding={'lg'}
+        styles={{
+          content: { backgroundColor: '#0a0a0a', border: '1px solid #262626' },
+          header: { backgroundColor: '#0a0a0a' },
+          body: { backgroundColor: '#0a0a0a' },
+        }}
+      >
         <div className="px-10 pb-5">
-          <h2 className="mb-4 text-xl font-semibold text-gray-900">
+          <h2 className="mb-4 text-xl font-semibold text-neutral-100">
             Add Bookmark
           </h2>
         </div>
@@ -55,9 +65,19 @@ const ThisAddProjectDialog = () => {
           <Plus size={16} />
         </GhostButton>
       </div>
-      <Modal opened={opened} onClose={close} centered padding={'lg'}>
+      <Modal
+        opened={opened}
+        onClose={close}
+        centered
+        padding={'lg'}
+        styles={{
+          content: { backgroundColor: '#0a0a0a', border: '1px solid #262626' },
+          header: { backgroundColor: '#0a0a0a' },
+          body: { backgroundColor: '#0a0a0a' },
+        }}
+      >
         <div className="px-10 pb-5">
-          <h2 className="mb-4 text-xl font-semibold text-gray-900">
+          <h2 className="mb-4 text-xl font-semibold text-neutral-100">
             Create Project Idea
           </h2>
           <ProjectIdeaForm onClose={close} />
@@ -84,6 +104,11 @@ const ThisAddBlogDialog = () => {
         padding={'lg'}
         size={'100vw'}
         title="Create Blog"
+        styles={{
+          content: { backgroundColor: '#0a0a0a', border: '1px solid #262626' },
+          header: { backgroundColor: '#0a0a0a' },
+          body: { backgroundColor: '#0a0a0a' },
+        }}
       >
         <BlogForm onClose={close} />
       </Modal>
@@ -122,7 +147,7 @@ export function SidebarNavigation() {
           label: 'Writing',
           icon: WritingIcon,
           trailingAccessory: null,
-          isActive: pathname === '/writing',
+          isActive: pathname?.startsWith('/writing') || false,
           isExternal: false,
           trailingAction:
             getUserRole(user) === 'admin' ? ThisAddBlogDialog : null,
@@ -137,7 +162,7 @@ export function SidebarNavigation() {
           label: 'Bookmarks',
           icon: BookmarksIcon,
           trailingAccessory: null,
-          isActive: pathname === '/bookmarks',
+          isActive: pathname?.startsWith('/bookmarks') || false,
           isExternal: false,
           trailingAction:
             getUserRole() === 'admin' ? ThisAddBookmarkDialog : null,
@@ -147,7 +172,7 @@ export function SidebarNavigation() {
           label: 'Projects',
           icon: ProjectIcon,
           trailingAccessory: null,
-          isActive: pathname === '/projects',
+          isActive: pathname?.startsWith('/projects') || false,
           trailingAction:
             getUserRole(user) === 'admin' ? ThisAddProjectDialog : null,
           isExternal: false,
@@ -207,7 +232,7 @@ export function SidebarNavigation() {
             {section.label && (
               <h4
                 key={i}
-                className="px-2 pb-2 pt-5 text-xs font-semibold text-gray-1000 text-opacity-40 dark:text-white"
+                className="px-2 pb-2 pt-5 text-xs font-semibold text-neutral-500"
               >
                 {section.label}
               </h4>

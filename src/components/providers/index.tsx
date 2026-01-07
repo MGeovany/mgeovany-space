@@ -30,7 +30,7 @@ export function Providers({ children }: Props) {
 
   return (
     <>
-      <MantineProvider>
+      <MantineProvider defaultColorScheme="dark">
         <SEO />
         <Toast />
         <GlobalNavigationContext.Provider value={state}>

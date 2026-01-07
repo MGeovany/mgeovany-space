@@ -7,16 +7,19 @@ import {
   Bookmark,
   Check,
   DoorOpen,
+  Edit,
   ExternalLink,
   FileText,
   FolderKanban,
   Link,
   Loader2,
   MoreVertical,
+  Plus,
   RefreshCw,
   Search,
   Trash2,
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 
@@ -25,6 +28,7 @@ import { Icons } from '@/components/icons'
 import { useSupabaseUser } from '@/hooks/useSupabaseUser'
 import { isAllowedEditorEmail } from '@/lib/editor/allowed'
 import { createClient } from '@/lib/supabase/client'
+import { Project as ProjectType } from '@/types/project'
 
 type TabType = 'blogs' | 'bookmarks' | 'projects'
 
@@ -64,15 +68,6 @@ interface Bookmark {
   updatedAt: string
 }
 
-interface Project {
-  id: number
-  title: string
-  description: string
-  url: string
-  createdAt: string
-  updatedAt: string
-}
-
 // Helper to get auth headers
 async function getAuthHeaders(): Promise<Record<string, string>> {
   const { getSupabaseToken } = await import('@/lib/supabase/get-token')
@@ -85,11 +80,24 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 }
 
 export default function EditorPage() {
+  const router = useRouter()
   const { user, loading } = useSupabaseUser()
   const email = user?.email ?? null
   const allowed = isAllowedEditorEmail(email)
 
+  // Get tab from URL query params, default to 'blogs'
   const [activeTab, setActiveTab] = useState<TabType>('blogs')
+
+  // Sync tab with URL query params
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const tabParam = params.get('tab') as TabType | null
+      if (tabParam && ['blogs', 'bookmarks', 'projects'].includes(tabParam)) {
+        setActiveTab(tabParam)
+      }
+    }
+  }, [])
   const [query, setQuery] = useState('')
 
   // Blogs state
@@ -114,7 +122,7 @@ export default function EditorPage() {
   >(new Set())
 
   // Projects state
-  const [projects, setProjects] = useState<Project[]>([])
+  const [projects, setProjects] = useState<ProjectType[]>([])
   const [projectsLoading, setProjectsLoading] = useState(false)
   const [selectedProjects, setSelectedProjects] = useState<Set<string>>(
     new Set()
@@ -184,7 +192,11 @@ export default function EditorPage() {
   async function loadProjects() {
     setProjectsLoading(true)
     try {
-      const response = await axios.get('/api/project-ideas')
+      const authHeaders = await getAuthHeaders()
+      const response = await axios.get('/api/projects?includeArchived=true', {
+        withCredentials: true,
+        headers: authHeaders,
+      })
       setProjects(response.data.data || [])
     } catch (error: any) {
       toast.error(`[Editor] Could not load projects: ${error.message}`)
@@ -204,7 +216,9 @@ export default function EditorPage() {
   // Close menu when clicking outside
   useEffect(() => {
     if (!showBookmarkMenuForId) return
-    const handleClickOutside = () => setShowBookmarkMenuForId(null)
+    const handleClickOutside = () => {
+      if (showBookmarkMenuForId) setShowBookmarkMenuForId(null)
+    }
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
   }, [showBookmarkMenuForId])
@@ -334,11 +348,43 @@ export default function EditorPage() {
     }
   }
 
+  async function handleArchiveProject(id: string) {
+    try {
+      const authHeaders = await getAuthHeaders()
+      await axios.patch(
+        `/api/projects/${id}`,
+        { status: 'Archived' },
+        {
+          withCredentials: true,
+          headers: authHeaders,
+        }
+      )
+      toast.success('[Editor] Project archived successfully')
+      await loadProjects()
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.error ?? error?.message ?? 'Unknown error'
+      toast.error(`[Editor] Could not archive: ${errorMessage}`)
+    }
+  }
+
   async function handleArchiveMultipleProjects() {
     if (selectedProjects.size === 0) return
 
     try {
-      // TODO: Implement archive endpoint for projects
+      const authHeaders = await getAuthHeaders()
+      const promises = Array.from(selectedProjects).map((id) =>
+        axios.patch(
+          `/api/projects/${id}`,
+          { status: 'Archived' },
+          {
+            withCredentials: true,
+            headers: authHeaders,
+          }
+        )
+      )
+
+      await Promise.all(promises)
       toast.success(
         `[Editor] ${selectedProjects.size} project(s) archived successfully`
       )
@@ -349,6 +395,14 @@ export default function EditorPage() {
         error?.response?.data?.error ?? error?.message ?? 'Unknown error'
       toast.error(`[Editor] Could not archive: ${errorMessage}`)
     }
+  }
+
+  function handleNewProject() {
+    router.push('/editor/projects/new')
+  }
+
+  function handleEditProject(project: ProjectType) {
+    router.push(`/editor/projects/${project.id}/edit`)
   }
 
   function toggleBlogSelection(id: string) {
@@ -612,6 +666,17 @@ export default function EditorPage() {
                   <Bookmark size={14} />
                 )}
                 <span className="hidden sm:inline">Sync Bookmarks</span>
+              </button>
+            )}
+            {activeTab === 'projects' && (
+              <button
+                onClick={handleNewProject}
+                className="flex h-9 items-center gap-1.5 rounded-md border border-neutral-800 bg-neutral-900 px-2.5 py-2 text-xs font-medium text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white sm:gap-2 sm:px-3"
+                aria-label="New Project"
+                title="Create a new project"
+              >
+                <Plus size={14} />
+                <span className="hidden sm:inline">New Project</span>
               </button>
             )}
             <button
@@ -1181,17 +1246,26 @@ export default function EditorPage() {
                 </div>
               ) : (
                 projects.map((project) => {
-                  const isSelected = selectedProjects.has(project.id.toString())
+                  const isSelected = selectedProjects.has(project.id)
 
                   return (
                     <div
                       key={project.id}
-                      className="group relative flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900/50 p-3.5 transition-colors hover:bg-neutral-900 sm:p-4"
+                      onClick={() => handleEditProject(project)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          handleEditProject(project)
+                        }
+                      }}
+                      className="group relative flex cursor-pointer items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900/50 p-3.5 transition-colors hover:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-700 sm:p-4"
                     >
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
-                          toggleProjectSelection(project.id.toString())
+                          toggleProjectSelection(project.id)
                         }}
                         className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${
                           isSelected
@@ -1204,44 +1278,50 @@ export default function EditorPage() {
                           <Check size={12} className="text-white" />
                         )}
                       </button>
-                      <a
-                        href={project.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="min-w-0 flex-1"
-                        onClick={(e) => {
-                          if (e.metaKey || e.ctrlKey) return
-                          e.preventDefault()
-                          window.open(
-                            project.url,
-                            '_blank',
-                            'noopener,noreferrer'
-                          )
-                        }}
-                      >
-                        <div className="min-w-0 flex-1">
-                          <div className="break-words text-sm font-medium text-neutral-200 sm:text-base">
-                            {project.title}
-                          </div>
-                          {project.description && (
-                            <div className="mt-1 line-clamp-2 break-words text-xs text-neutral-500">
-                              {project.description}
-                            </div>
-                          )}
-                          {project.url && (
-                            <div className="mt-1 truncate text-xs text-neutral-500">
-                              {new URL(project.url).hostname.replace(
-                                'www.',
-                                ''
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <div className="break-words text-sm font-medium text-neutral-200 sm:text-base">
+                                {project.name}
+                              </div>
+                              {project.year && (
+                                <span className="text-xs text-neutral-500">
+                                  {project.year}
+                                </span>
                               )}
+                              <span className="rounded-full border border-neutral-800 bg-neutral-900 px-2 py-0.5 text-xs font-semibold text-neutral-400">
+                                {project.status}
+                              </span>
                             </div>
-                          )}
+                            <div className="mt-1 line-clamp-2 break-words text-xs text-neutral-500">
+                              {project.motivation}
+                            </div>
+                            {project.summary && (
+                              <div className="mt-1 line-clamp-1 break-words text-xs text-neutral-600">
+                                {project.summary}
+                              </div>
+                            )}
+                            {(project.links.code || project.links.live) && (
+                              <div className="mt-1 flex items-center gap-2 text-xs text-neutral-500">
+                                {project.links.live && (
+                                  <span className="truncate">
+                                    {new URL(
+                                      project.links.live
+                                    ).hostname.replace('www.', '')}
+                                  </span>
+                                )}
+                                {project.links.code && (
+                                  <>
+                                    {project.links.live && <span>•</span>}
+                                    <span>Code</span>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </a>
-                      <ExternalLink
-                        size={14}
-                        className="hidden shrink-0 text-neutral-500 opacity-0 transition-opacity group-hover:opacity-100 sm:block"
-                      />
+                      </div>
                     </div>
                   )
                 })

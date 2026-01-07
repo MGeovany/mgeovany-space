@@ -84,7 +84,7 @@ const BlogForm = ({ blog, onClose }: BlogFormProps) => {
         <div className="my-4 w-fit">
           <label
             htmlFor="title"
-            className="text-md block font-black text-gray-700"
+            className="text-md block font-black text-neutral-200"
           >
             Title
           </label>
@@ -94,12 +94,12 @@ const BlogForm = ({ blog, onClose }: BlogFormProps) => {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="mt-1 block w-full min-w-80 rounded-lg border border-gray-300 bg-white p-2 focus:border-black focus:ring-black"
+              className="mt-1 block w-full min-w-80 rounded-lg border border-neutral-800 bg-neutral-900 p-2 text-neutral-100 placeholder:text-neutral-500 focus:border-neutral-700 focus:ring-neutral-700"
               required
             />
             <button
               type="submit"
-              className="w-full rounded-lg bg-black px-4 py-2 font-semibold text-white hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+              className="w-full rounded-lg bg-white px-4 py-2 font-semibold text-neutral-950 transition hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-300 focus:ring-offset-0"
             >
               Submit
             </button>
@@ -110,7 +110,7 @@ const BlogForm = ({ blog, onClose }: BlogFormProps) => {
           <div className="w-1/2">
             <label
               htmlFor="content"
-              className="block text-sm font-black text-gray-700"
+              className="block text-sm font-black text-neutral-200"
             >
               Content
             </label>
@@ -118,13 +118,13 @@ const BlogForm = ({ blog, onClose }: BlogFormProps) => {
               id="description"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-gray-300 p-2 focus:border-black focus:ring-black"
+              className="mt-1 block w-full rounded-lg border border-neutral-800 bg-neutral-900 p-2 text-neutral-100 placeholder:text-neutral-500 focus:border-neutral-700 focus:ring-neutral-700"
               rows={50}
               required
             />
           </div>
           {/* Previsualización en markdown */}
-          <div className="mt-5 w-1/2 rounded border bg-gray-100 p-4">
+          <div className="mt-5 w-1/2 rounded border border-neutral-800 bg-neutral-900 p-4 text-neutral-100">
             <MarkdownRenderer children={content} />
             {content}
           </div>
@@ -134,7 +134,7 @@ const BlogForm = ({ blog, onClose }: BlogFormProps) => {
       <div className="mt-4 flex justify-end">
         <button
           type="submit"
-          className="w-auto rounded-lg bg-black px-4 py-2 font-semibold text-white hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+          className="w-auto rounded-lg bg-white px-4 py-2 font-semibold text-neutral-950 transition hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-300 focus:ring-offset-0"
         >
           Submit
         </button>

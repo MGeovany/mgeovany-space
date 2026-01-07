@@ -60,7 +60,7 @@
   }
  */
   .font-list-heading {
-    @apply font-sans text-lg font-bold text-primary;
+    @apply text-primary font-sans text-lg font-bold;
   }
 
   .tabbed-navigation::-webkit-scrollbar {
@@ -89,23 +89,38 @@
 /* Your own custom utilities */
 @layer utilities {
   .text-primary {
-    @apply text-gray-1000 dark:text-gray-100;
+    color: #050505;
+  }
+  .dark .text-primary {
+    color: hsl(var(--foreground));
   }
 
   .text-secondary {
-    @apply text-gray-700 dark:text-gray-300;
+    color: #404040;
+  }
+  .dark .text-secondary {
+    color: #d4d4d8;
   }
 
   .text-tertiary {
-    @apply text-gray-500 dark:text-gray-400;
+    color: #737373;
+  }
+  .dark .text-tertiary {
+    color: #a1a1aa;
   }
 
   .text-quaternary {
-    @apply text-gray-400 dark:text-gray-500;
+    color: #a3a3a3;
+  }
+  .dark .text-quaternary {
+    color: #71717a;
   }
 
   .bg-elevated {
-    @apply bg-gray-400 bg-opacity-5 dark:bg-gray-50;
+    background-color: rgba(163, 163, 163, 0.05);
+  }
+  .dark .bg-elevated {
+    background-color: rgba(255, 255, 255, 0.06);
   }
 
   .filter-none {
@@ -126,11 +141,41 @@
   }
 
   .highlight-link-hover {
-    @apply -mx-0.5 rounded-sm bg-opacity-20 px-0.5 text-gray-1000 no-underline dark:bg-opacity-100 dark:text-gray-300 md:hover:bg-yellow-400 md:hover:bg-opacity-30 md:dark:hover:bg-yellow-500 md:dark:hover:bg-opacity-100 md:dark:hover:text-gray-1000;
+    @apply -mx-0.5 rounded-sm px-0.5 no-underline;
+    color: #050505;
+    background-color: rgba(0, 0, 0, 0.2);
+  }
+  .dark .highlight-link-hover {
+    color: hsl(var(--foreground));
+    background-color: rgba(255, 255, 255, 0.12);
+  }
+  @media (min-width: 768px) {
+    .highlight-link-hover:hover {
+      background-color: rgba(251, 191, 36, 0.3);
+    }
+    .dark .highlight-link-hover:hover {
+      background-color: rgba(234, 179, 8, 1);
+      color: #050505;
+    }
   }
 
   .highlight-link {
-    @apply -mx-0.5 bg-opacity-20 px-0.5 text-gray-1000 dark:bg-gray-100 dark:bg-opacity-20 dark:text-gray-300 md:hover:bg-opacity-30 md:dark:hover:bg-yellow-500 md:dark:hover:bg-opacity-100 md:dark:hover:text-gray-1000;
+    @apply -mx-0.5 px-0.5;
+    color: #050505;
+    background-color: rgba(0, 0, 0, 0.2);
+  }
+  .dark .highlight-link {
+    background-color: rgba(212, 212, 216, 0.2);
+    color: #d4d4d8;
+  }
+  @media (min-width: 768px) {
+    .highlight-link:hover {
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+    .dark .highlight-link:hover {
+      background-color: rgba(234, 179, 8, 1);
+      color: #050505;
+    }
   }
 
   .blink {

@@ -1,9 +1,18 @@
 .prose {
-  @apply text-gray-700 dark:text-gray-400;
+  color: #404040;
+}
+.dark .prose {
+  color: #a1a1aa;
 }
 
 .prose blockquote {
-  @apply border-l-2 border-gray-200 font-normal dark:border-gray-800 dark:text-gray-400;
+  @apply border-l-2 font-normal;
+  border-color: #e5e5e5;
+  color: #a1a1aa;
+}
+.dark .prose blockquote {
+  border-color: #262626;
+  color: #a1a1aa;
 }
 
 .prose figure {
@@ -23,7 +32,13 @@
 }
 
 .prose table {
-  @apply my-2 rounded-md border border-gray-200 text-gray-1000 dark:border-gray-800 dark:text-gray-50;
+  @apply my-2 rounded-md border;
+  border-color: #e5e5e5;
+  color: #050505;
+}
+.dark .prose table {
+  border-color: #262626;
+  color: #fafafa;
 }
 
 .prose.comment table {
@@ -31,7 +46,10 @@
 }
 
 .prose thead {
-  @apply text-gray-800 dark:text-gray-200;
+  color: #262626;
+}
+.dark .prose thead {
+  color: #d4d4d8;
 }
 
 .prose thead th {
@@ -42,29 +60,54 @@
 .prose thead th,
 .prose tbody th,
 .prose tbody td {
-  @apply border-r border-gray-200 p-2 dark:border-gray-800;
+  @apply border-r p-2;
+  border-color: #e5e5e5;
   padding-left: 1rem !important;
+}
+.dark .prose thead th,
+.dark .prose tbody th,
+.dark .prose tbody td {
+  border-color: #262626;
 }
 
 .prose tbody tr {
-  @apply border-b border-gray-200 dark:border-gray-800;
+  @apply border-b;
+  border-color: #e5e5e5;
+}
+.dark .prose tbody tr {
+  border-color: #262626;
 }
 
 .prose thead tr {
-  @apply border-b-2 border-gray-200 dark:border-gray-800;
+  @apply border-b-2;
+  border-color: #e5e5e5;
+}
+.dark .prose thead tr {
+  border-color: #262626;
 }
 
 .prose tbody tr:nth-child(2n) {
-  @apply bg-gray-50 dark:bg-gray-900;
+  background-color: #fafafa;
+}
+.dark .prose tbody tr:nth-child(2n) {
+  background-color: #171717;
 }
 
 .prose b,
 .prose strong {
-  @apply font-bold text-gray-900 dark:text-gray-300;
+  @apply font-bold;
+  color: #171717;
+}
+.dark .prose b,
+.dark .prose strong {
+  color: #d4d4d8;
 }
 
 .prose hr {
-  @apply border-gray-200 dark:border-gray-800;
+  border-color: #e5e5e5;
+}
+.dark .prose hr {
+  border-color: #262626;
 }
 
 /* the kg-embed-card gets applied to iframes sent from Ghost. this preserves a good video aspect ratio */
@@ -88,8 +131,17 @@
 .prose h4,
 .prose h5,
 .prose h6 {
-  @apply font-sans font-bold text-gray-900 dark:text-gray-100;
+  @apply font-sans font-bold;
+  color: #171717;
   scroll-margin-top: 4rem;
+}
+.dark .prose h1,
+.dark .prose h2,
+.dark .prose h3,
+.dark .prose h4,
+.dark .prose h5,
+.dark .prose h6 {
+  color: #fafafa;
 }
 
 .prose h1 a,
@@ -98,7 +150,16 @@
 .prose h4 a,
 .prose h5 a,
 .prose h6 a {
-  @apply font-sans font-bold text-gray-1000 no-underline dark:text-gray-100;
+  @apply font-sans font-bold no-underline;
+  color: #050505;
+}
+.dark .prose h1 a,
+.dark .prose h2 a,
+.dark .prose h3 a,
+.dark .prose h4 a,
+.dark .prose h5 a,
+.dark .prose h6 a {
+  color: #fafafa;
 }
 
 .prose h5 {
@@ -106,7 +167,14 @@
 }
 
 .prose pre {
-  @apply space-y-4 rounded-md border-gray-300 bg-gray-400 bg-opacity-5 px-8 py-6 text-sm text-gray-800 dark:border-gray-800 dark:text-gray-200;
+  @apply space-y-4 rounded-md px-8 py-6 text-sm;
+  border-color: #d4d4d4;
+  background-color: rgba(163, 163, 163, 0.05);
+  color: #262626;
+}
+.dark .prose pre {
+  border-color: #262626;
+  color: #d4d4d8;
 }
 
 .prose.comment {
@@ -150,7 +218,15 @@
 }
 
 .prose code {
-  @apply rounded-md border-gray-100 bg-gray-100 px-1 py-0.5 text-gray-800 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200;
+  @apply rounded-md px-1 py-0.5;
+  border-color: #f5f5f5;
+  background-color: #f5f5f5;
+  color: #262626;
+}
+.dark .prose code {
+  border-color: #262626;
+  background-color: #171717;
+  color: #d4d4d8;
 }
 
 .prose code,
@@ -160,17 +236,23 @@
 }
 
 .prose pre > code {
-  @apply bg-gray-800 text-gray-200;
+  background-color: #262626;
+  color: #d4d4d8;
 }
 
 .prose pre {
-  @apply bg-gray-800 text-gray-100;
+  background-color: #262626;
+  color: #f5f5f5;
 }
 
 .prose sup {
-  @apply text-sm text-blue-500 dark:text-gray-400;
+  @apply text-sm;
+  color: #3b82f6;
   vertical-align: super;
   top: 0px;
   position: relative;
   scroll-margin-top: 4rem;
+}
+.dark .prose sup {
+  color: #a1a1aa;
 }

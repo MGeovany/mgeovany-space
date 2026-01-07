@@ -111,7 +111,7 @@ export const BlogListItem = memo<BlogListItemProps>(({ blog, active }) => {
 
   const publishedDate = blog.published_at
     ? formatDistanceToNowStrict(new Date(blog.published_at), {
-        addSuffix: true,
+        addSuffix: false,
       })
     : null
 
@@ -151,13 +151,13 @@ export const BlogListItem = memo<BlogListItemProps>(({ blog, active }) => {
                   </div>
                 )}
                 {publishedDate && (
-                  <div className="flex items-center gap-1.5 text-neutral-500">
+                  <div className="flex items-center gap-1.5 text-neutral-400">
                     <Calendar size={12} />
                     <span>{publishedDate}</span>
                   </div>
                 )}
                 {blog.url && (
-                  <div className="flex items-center gap-1.5 text-neutral-500">
+                  <div className="flex items-center gap-1.5 text-neutral-400">
                     <ExternalLink size={12} />
                     <span className="max-w-[120px] truncate">
                       {new URL(blog.url).hostname.replace('www.', '')}

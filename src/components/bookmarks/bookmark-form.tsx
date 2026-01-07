@@ -96,7 +96,7 @@ const BookmarkForm = ({ bookmark, onClose }: BookmarkFormProps) => {
       <div>
         <label
           htmlFor="title"
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-neutral-200"
         >
           Title
         </label>
@@ -105,7 +105,7 @@ const BookmarkForm = ({ bookmark, onClose }: BookmarkFormProps) => {
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="mt-1 block w-full rounded-lg border border-gray-300 bg-white p-2 focus:border-black focus:ring-black"
+          className="mt-1 block w-full rounded-lg border border-neutral-800 bg-neutral-900 p-2 text-neutral-100 placeholder:text-neutral-500 focus:border-neutral-700 focus:ring-neutral-700"
           required
         />
       </div>
@@ -113,7 +113,7 @@ const BookmarkForm = ({ bookmark, onClose }: BookmarkFormProps) => {
       <div>
         <label
           htmlFor="url"
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-neutral-200"
         >
           URL
         </label>
@@ -122,7 +122,7 @@ const BookmarkForm = ({ bookmark, onClose }: BookmarkFormProps) => {
           type="url"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          className="mt-1 block w-full rounded-lg border border-gray-300 p-2 focus:border-black focus:ring-black"
+          className="mt-1 block w-full rounded-lg border border-neutral-800 bg-neutral-900 p-2 text-neutral-100 placeholder:text-neutral-500 focus:border-neutral-700 focus:ring-neutral-700"
           required
         />
       </div>
@@ -130,7 +130,7 @@ const BookmarkForm = ({ bookmark, onClose }: BookmarkFormProps) => {
       <div>
         <label
           htmlFor="description"
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-neutral-200"
         >
           Description
         </label>
@@ -138,7 +138,7 @@ const BookmarkForm = ({ bookmark, onClose }: BookmarkFormProps) => {
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="mt-1 block w-full rounded-lg border border-gray-300 p-2 focus:border-black focus:ring-black"
+          className="mt-1 block w-full rounded-lg border border-neutral-800 bg-neutral-900 p-2 text-neutral-100 placeholder:text-neutral-500 focus:border-neutral-700 focus:ring-neutral-700"
           rows={3}
           required
         />
@@ -147,7 +147,7 @@ const BookmarkForm = ({ bookmark, onClose }: BookmarkFormProps) => {
       <div>
         <label
           htmlFor="tag"
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-neutral-200"
         >
           Tag
         </label>
@@ -155,7 +155,7 @@ const BookmarkForm = ({ bookmark, onClose }: BookmarkFormProps) => {
           id="tag"
           value={tag}
           onChange={(e) => setTag(e.target.value as BookmarkTag)}
-          className="mt-1 block w-full rounded-lg border border-gray-300 p-2 focus:border-black focus:ring-black"
+          className="mt-1 block w-full rounded-lg border border-neutral-800 bg-neutral-900 p-2 text-neutral-100 focus:border-neutral-700 focus:ring-neutral-700"
           required
         >
           {Object.values(BookmarkTag).map((tagValue) => (
@@ -168,7 +168,7 @@ const BookmarkForm = ({ bookmark, onClose }: BookmarkFormProps) => {
 
       <button
         type="submit"
-        className="w-full rounded-lg bg-black px-4 py-2 font-semibold text-white hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+        className="w-full rounded-lg bg-white px-4 py-2 font-semibold text-neutral-950 transition hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-300 focus:ring-offset-0"
       >
         Submit
       </button>
