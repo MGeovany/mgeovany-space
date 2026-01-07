@@ -8,5 +8,7 @@ export const PROJECT_STATUSES: ProjectStatus[] = [
 ]
 
 export function getProjectById(id: string) {
-  return projects.find((p) => p.id === id)
+  // Projects are now fetched from the database
+  // This function is kept for backwards compatibility
+  return undefined
 }

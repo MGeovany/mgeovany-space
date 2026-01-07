@@ -2,7 +2,7 @@ export const baseUrl = process.env.NODE_ENV === 'production' ? 'TODO' : ''
 export const baseEmail = 'marlongeo199@gmail.com'
 
 export const defaultSEO = {
-  title: 'M Geovany',
+  title: 'mgeovany',
   description:
     'Software Engineer with a passion for building products, learning, and teaching.',
   openGraph: {
@@ -13,7 +13,7 @@ export const defaultSEO = {
     images: [
       {
         url: `${baseUrl}/static/meta/me.webp`,
-        alt: 'M Geovany',
+        alt: 'mgeovany',
       },
     ],
   },

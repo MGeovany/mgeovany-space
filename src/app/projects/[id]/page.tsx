@@ -58,6 +58,12 @@ function dbRowToProject(row: any): Project {
   }
 }
 
+const baseUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.NODE_ENV === 'production'
+    ? 'https://mgeovany.thefndrs.com'
+    : 'http://localhost:3000')
+
 export async function generateMetadata({
   params,
 }: {
@@ -67,15 +73,44 @@ export async function generateMetadata({
 
   const { data } = await supabase
     .from('projects')
-    .select('name, summary, motivation')
+    .select('name, summary, motivation, tagline')
     .eq('id', params.id)
     .single()
 
-  if (!data) return { title: 'Project not found' }
+  if (!data) {
+    return {
+      title: 'Project not found',
+    }
+  }
+
+  const title = data.name || 'Project'
+  const description =
+    data.summary || data.tagline || data.motivation || 'A project by mgeovany'
 
   return {
-    title: data.name,
-    description: data.summary || data.motivation,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `${baseUrl}/projects/${params.id}`,
+      siteName: 'mgeovany space',
+      type: 'website',
+      images: [
+        {
+          url: `${baseUrl}/static/meta/me.webp`,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [`${baseUrl}/static/meta/me.webp`],
+    },
   }
 }
 

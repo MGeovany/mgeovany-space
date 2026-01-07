@@ -25,9 +25,7 @@ function formatLinkLabel(url: string) {
 }
 
 export function ProjectDetailContent({ project }: { project: Project }) {
-  const scrollContainerRef = useRef<HTMLDivElement>(
-    null
-  ) as MutableRefObject<HTMLElement | null>
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   const { code, live } = project.links
   const codeLabel = code ? formatLinkLabel(code) : null
@@ -39,7 +37,9 @@ export function ProjectDetailContent({ project }: { project: Project }) {
       className="flex h-full w-full flex-col overflow-y-auto bg-neutral-950"
     >
       <TitleBar
-        scrollContainerRef={scrollContainerRef}
+        scrollContainerRef={
+          scrollContainerRef as MutableRefObject<HTMLElement | null>
+        }
         title={project.name}
         globalMenu={true}
         backButton={true}

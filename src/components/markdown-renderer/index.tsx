@@ -21,7 +21,7 @@ function LinkRenderer({ href, ...rest }: any) {
   }
   try {
     const url = new URL(href)
-    if (url.origin === 'https://mgeovany.com') {
+    if (url.origin === 'https://mgeovany.thefndrs.com') {
       return <Link href={href} {...rest} />
     }
     return <a target="_blank" rel="noreferrer" href={href} {...rest} />

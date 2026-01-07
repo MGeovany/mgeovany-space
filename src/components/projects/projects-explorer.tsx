@@ -6,9 +6,7 @@ import { ProjectCard } from '@/components/projects/project-card'
 import { Project } from '@/types/project'
 
 export function ProjectsExplorer({ projects }: { projects: Project[] }) {
-  const scrollContainerRef = useRef<HTMLDivElement>(
-    null
-  ) as MutableRefObject<HTMLElement | null>
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   return (
     <div
@@ -16,7 +14,9 @@ export function ProjectsExplorer({ projects }: { projects: Project[] }) {
       className="relative flex h-full max-h-screen w-full flex-col overflow-y-auto bg-gradient-to-b from-neutral-950 via-neutral-950 to-neutral-900"
     >
       <TitleBar
-        scrollContainerRef={scrollContainerRef}
+        scrollContainerRef={
+          scrollContainerRef as MutableRefObject<HTMLElement | null>
+        }
         title="Projects"
         globalMenu={true}
       />

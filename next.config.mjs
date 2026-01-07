@@ -12,16 +12,19 @@ const nextConfig = {
       },
     ],
   },
-  webpack: (config) => {
-    config.optimization.minimizer = [
-      new TerserPlugin({
-        terserOptions: {
-          format: {
-            ascii_only: true,
+  webpack: (config, { dev, isServer }) => {
+    // Only apply TerserPlugin in production builds
+    if (!dev && !isServer) {
+      config.optimization.minimizer = [
+        new TerserPlugin({
+          terserOptions: {
+            format: {
+              ascii_only: true,
+            },
           },
-        },
-      }),
-    ]
+        }),
+      ]
+    }
     return config
   },
 }
