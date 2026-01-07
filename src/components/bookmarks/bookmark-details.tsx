@@ -1,6 +1,7 @@
 'use client'
 
 import axios from 'axios'
+import { motion } from 'framer-motion'
 import { LinkIcon } from 'lucide-react'
 import Link from 'next/link'
 import { NextSeo } from 'next-seo'
@@ -58,53 +59,69 @@ export function BookmarkDetail({ id }: { id: string }) {
           scrollContainerRef={scrollContainerRef}
         />
         <Detail.ContentContainer>
-          <Detail.Header>
-            <Tags tags={bookmark.tag} />
-            <Link
-              href={bookmark.url}
-              target="_blank"
-              rel="noopener"
-              className="block"
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Detail.Header>
+              <Tags tags={bookmark.tag} />
+              <Link
+                href={bookmark.url}
+                target="_blank"
+                rel="noopener"
+                className="block"
+              >
+                <Detail.Title ref={titleRef}>{bookmark.title}</Detail.Title>
+              </Link>
+              <Link
+                href={bookmark.url}
+                target="_blank"
+                rel="noopener"
+                className="text-tertiary flex items-center space-x-2 leading-snug"
+              >
+                {
+                  imageBroken ? <Icons.url /> : null
+                  /*   <Image
+                    src={`https://www.google.com/s2/favicons?domain=${bookmark.url}`}
+                    alt="favicon"
+                    width={16}
+                    height={16}
+                    onError={() => setImageBroken(true)}
+                  /> */
+                }
+                <span>{new URL(bookmark.url).hostname}</span>
+              </Link>
+              {bookmark.description && (
+                <MarkdownRenderer
+                  className="prose italic opacity-70"
+                  variant="comment"
+                >
+                  {bookmark.description}
+                </MarkdownRenderer>
+              )}
+            </Detail.Header>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.4,
+                delay: 0.1,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              className="mt-6"
             >
-              <Detail.Title ref={titleRef}>{bookmark.title}</Detail.Title>
-            </Link>
-            <Link
-              href={bookmark.url}
-              target="_blank"
-              rel="noopener"
-              className="text-tertiary flex items-center space-x-2 leading-snug"
-            >
-              {
-                imageBroken ? <Icons.url /> : null
-                /*   <Image
-                  src={`https://www.google.com/s2/favicons?domain=${bookmark.url}`}
-                  alt="favicon"
-                  width={16}
-                  height={16}
-                  onError={() => setImageBroken(true)}
-                /> */
-              }
-              <span>{new URL(bookmark.url).hostname}</span>
-            </Link>
-            {bookmark.description && (
-              <MarkdownRenderer
-                className="prose italic opacity-70"
-                children={bookmark.description}
-                variant="comment"
-              />
-            )}
-          </Detail.Header>
-          <div className="mt-6">
-            <PrimaryButton
-              size={Size.large}
-              href={bookmark.url}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <LinkIcon size={14} />
-              <span>Visit</span>
-            </PrimaryButton>
-          </div>
+              <PrimaryButton
+                size={Size.large}
+                href={bookmark.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <LinkIcon size={14} />
+                <span>Visit</span>
+              </PrimaryButton>
+            </motion.div>
+          </motion.div>
         </Detail.ContentContainer>
       </Detail.Container>
     </>

@@ -27,7 +27,7 @@ export function StackBadges({ stack }: { stack: string[] }) {
       {stack.map((s) => (
         <span
           key={s}
-          className="inline-flex items-center rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-700 shadow-xs dark:border-gray-800 dark:bg-black dark:text-gray-200"
+          className="border-gray-200 text-gray-700 dark:border-gray-800 dark:text-gray-200 inline-flex items-center rounded-full border bg-white px-2.5 py-1 text-xs font-semibold shadow-xs dark:bg-black"
         >
           {s}
         </span>

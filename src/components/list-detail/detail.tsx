@@ -43,7 +43,7 @@ const Title = forwardRef<HTMLHeadingElement, TitleProps>((props, ref) => {
   return (
     <h1
       ref={ref}
-      className="text-primary font-sans text-2xl font-bold xl:text-3xl"
+      className="font-sans text-2xl font-bold text-primary xl:text-3xl"
       {...props}
     />
   )
@@ -66,7 +66,7 @@ function Null() {
       <div className="flex flex-1 flex-col items-center justify-center space-y-6 px-8 text-center lg:px-16">
         <Compass className="text-secondary" size={32} />
         <div className="flex flex-col space-y-1">
-          <p className="text-primary font-semibold">
+          <p className="font-semibold text-primary">
             What you seek does not exist.
           </p>
           <p className="text-tertiary">

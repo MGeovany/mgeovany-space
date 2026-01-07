@@ -60,13 +60,13 @@ export const SidebarContent: FC<SidebarContentProps> = ({
                           onError={() => handleImageError(index)}
                         />
                       )}
-                      <span className="text-sm text-gray-500">
+                      <span className="gray-500 text-sm">
                         {new URL(content.url).hostname}
                       </span>
                     </>
                   )}
                   {redirect === 'writing' || redirect === 'project-ideas' ? (
-                    <p className="text-sm text-gray-500">
+                    <p className="text-gray-500 text-sm">
                       {format(content.createdAt, 'MMMM dd, yyyy')}
                     </p>
                   ) : null}

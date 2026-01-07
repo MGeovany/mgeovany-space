@@ -1,17 +1,27 @@
-import { ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
+'use client'
+import { MutableRefObject, useRef } from 'react'
 
+import { TitleBar } from '@/components/list-detail/title-bar'
 import { ProjectCard } from '@/components/projects/project-card'
 import { Project } from '@/types/project'
 
 export function ProjectsExplorer({ projects }: { projects: Project[] }) {
+  const scrollContainerRef = useRef<HTMLDivElement>(
+    null
+  ) as MutableRefObject<HTMLElement | null>
+
   return (
-    <div className="relative flex h-full max-h-screen w-full flex-col overflow-y-auto bg-gradient-to-b from-neutral-950 via-neutral-950 to-neutral-900">
+    <div
+      ref={scrollContainerRef}
+      className="relative flex h-full max-h-screen w-full flex-col overflow-y-auto bg-gradient-to-b from-neutral-950 via-neutral-950 to-neutral-900"
+    >
+      <TitleBar
+        scrollContainerRef={scrollContainerRef}
+        title="Projects"
+        globalMenu={true}
+      />
       <div className="mx-auto w-full max-w-6xl px-4 py-10 md:px-8">
         <div className="space-y-2">
-          <h1 className="text-3xl font-extrabold tracking-tight text-primary">
-            Projects
-          </h1>
           <p className="max-w-2xl text-secondary">
             A curated set of projects with clear product motivation and
             technical decisions.
@@ -33,8 +43,8 @@ export function ProjectsExplorer({ projects }: { projects: Project[] }) {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {projects.map((p) => (
-                <ProjectCard key={p.id} project={p} />
+              {projects.map((p, index) => (
+                <ProjectCard key={p.id} project={p} index={index} />
               ))}
             </div>
           )}

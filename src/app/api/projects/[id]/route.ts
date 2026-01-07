@@ -39,7 +39,9 @@ async function requireAllowedUser(request: NextRequest) {
         getAll() {
           return cookieList
         },
-        setAll(cookiesToSet) {
+        setAll(
+          cookiesToSet: Array<{ name: string; value: string; options?: any }>
+        ) {
           cookiesToSet.forEach(({ name, value, options }) => {
             request.cookies.set(name, value)
             response.cookies.set(name, value, options)
@@ -94,6 +96,36 @@ function dbRowToProject(row: any): Project {
     id: row.id,
     name: row.name,
     motivation: row.motivation,
+    tagline: row.tagline || undefined,
+    role: row.role || undefined,
+    scope: row.scope || undefined,
+    timeframe:
+      row.timeframe_start || row.timeframe_end
+        ? {
+            start: row.timeframe_start || undefined,
+            end: row.timeframe_end || undefined,
+          }
+        : undefined,
+    problem: row.problem || undefined,
+    solution: row.solution || undefined,
+    constraints: row.constraints || undefined,
+    tradeoffs: row.tradeoffs || undefined,
+    outcomes:
+      row.outcomes_metrics || row.outcomes_narrative || row.outcomes_chart
+        ? {
+            metrics: row.outcomes_metrics || undefined,
+            narrative: row.outcomes_narrative || undefined,
+            chart: row.outcomes_chart || undefined,
+          }
+        : // Back-compat (legacy impact_*)
+          row.impact_metrics || row.impact_results || row.impact_learnings
+          ? {
+              metrics: row.impact_metrics || undefined,
+              narrative:
+                row.impact_results || row.impact_learnings || undefined,
+            }
+          : undefined,
+    nextSteps: row.next_steps || undefined,
     status: row.status,
     year: row.year || undefined,
     summary: row.summary || undefined,
@@ -103,6 +135,7 @@ function dbRowToProject(row: any): Project {
     },
     tech: {
       stack: row.tech_stack || [],
+      stackGroups: row.tech_stack_groups || undefined,
       architecture: row.architecture || undefined,
       technicalProblemSolved: row.technical_problem_solved || undefined,
       keyDecisions: row.key_decisions || undefined,
@@ -114,18 +147,6 @@ function dbRowToProject(row: any): Project {
             }
           : undefined,
     },
-    impact:
-      row.impact_metrics ||
-      row.impact_results?.length ||
-      row.impact_learnings?.length
-        ? {
-            metrics: row.impact_metrics || undefined,
-            results: row.impact_results || undefined,
-            learnings: row.impact_learnings || undefined,
-          }
-        : undefined,
-    screenshots: row.screenshots || undefined,
-    demoCredentials: row.demo_credentials || undefined,
   }
 }
 
@@ -135,6 +156,20 @@ function projectToDbRow(project: Partial<Project>): any {
     id: project.id,
     name: project.name,
     motivation: project.motivation,
+    tagline: project.tagline || null,
+    role: project.role || null,
+    scope: project.scope || null,
+    timeframe_start: project.timeframe?.start || null,
+    timeframe_end: project.timeframe?.end || null,
+    problem: project.problem || null,
+    solution: project.solution || null,
+    constraints: project.constraints || [],
+    tradeoffs: project.tradeoffs || null,
+    outcomes_metrics: project.outcomes?.metrics || null,
+    outcomes_narrative: project.outcomes?.narrative || [],
+    outcomes_chart: project.outcomes?.chart || null,
+    next_steps: project.nextSteps || [],
+    tech_stack_groups: project.tech?.stackGroups || null,
     status: project.status,
     year: project.year || null,
     summary: project.summary || null,
@@ -146,11 +181,10 @@ function projectToDbRow(project: Partial<Project>): any {
     key_decisions: project.tech?.keyDecisions || [],
     diagram_title: project.tech?.diagram?.title || null,
     diagram_lines: project.tech?.diagram?.lines || [],
-    impact_metrics: project.impact?.metrics || null,
-    impact_results: project.impact?.results || [],
-    impact_learnings: project.impact?.learnings || [],
-    screenshots: project.screenshots || null,
-    demo_credentials: project.demoCredentials || null,
+    // legacy (keep nulls)
+    impact_metrics: null,
+    impact_results: [],
+    impact_learnings: [],
   }
 }
 
@@ -201,14 +235,21 @@ export async function PUT(
   const {
     name,
     motivation,
+    tagline,
+    role,
+    scope,
+    timeframe,
+    problem,
+    solution,
+    constraints,
+    tradeoffs,
+    outcomes,
+    nextSteps,
     status,
     year,
     summary,
     links,
     tech,
-    impact,
-    screenshots,
-    demoCredentials,
   } = body
 
   const currentProject = dbRowToProject(existingProject)
@@ -217,6 +258,16 @@ export async function PUT(
     ...currentProject,
     ...(name && { name }),
     ...(motivation && { motivation }),
+    ...(tagline !== undefined && { tagline: tagline || undefined }),
+    ...(role !== undefined && { role: role || undefined }),
+    ...(scope !== undefined && { scope: scope || undefined }),
+    ...(timeframe !== undefined && { timeframe: timeframe || undefined }),
+    ...(problem !== undefined && { problem: problem || undefined }),
+    ...(solution !== undefined && { solution: solution || undefined }),
+    ...(constraints !== undefined && { constraints: constraints || undefined }),
+    ...(tradeoffs !== undefined && { tradeoffs: tradeoffs || undefined }),
+    ...(outcomes !== undefined && { outcomes: outcomes || undefined }),
+    ...(nextSteps !== undefined && { nextSteps: nextSteps || undefined }),
     ...(status && { status }),
     ...(year !== undefined && { year: year || undefined }),
     ...(summary !== undefined && { summary: summary || undefined }),
@@ -229,6 +280,7 @@ export async function PUT(
     ...(tech && {
       tech: {
         stack: tech.stack || currentProject.tech.stack,
+        stackGroups: tech.stackGroups || currentProject.tech.stackGroups,
         architecture: tech.architecture || currentProject.tech.architecture,
         technicalProblemSolved:
           tech.technicalProblemSolved ||
@@ -237,9 +289,6 @@ export async function PUT(
         diagram: tech.diagram || currentProject.tech.diagram,
       },
     }),
-    ...(impact && { impact }),
-    ...(screenshots && { screenshots }),
-    ...(demoCredentials && { demoCredentials }),
   }
 
   const dbRow = projectToDbRow(updatedProject)

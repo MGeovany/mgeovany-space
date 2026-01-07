@@ -8,6 +8,29 @@ function dbRowToProject(row: any): Project {
     id: row.id,
     name: row.name,
     motivation: row.motivation,
+    tagline: row.tagline || undefined,
+    role: row.role || undefined,
+    scope: row.scope || undefined,
+    timeframe:
+      row.timeframe_start || row.timeframe_end
+        ? {
+            start: row.timeframe_start || undefined,
+            end: row.timeframe_end || undefined,
+          }
+        : undefined,
+    problem: row.problem || undefined,
+    solution: row.solution || undefined,
+    constraints: row.constraints || undefined,
+    tradeoffs: row.tradeoffs || undefined,
+    outcomes:
+      row.outcomes_metrics || row.outcomes_narrative || row.outcomes_chart
+        ? {
+            metrics: row.outcomes_metrics || undefined,
+            narrative: row.outcomes_narrative || undefined,
+            chart: row.outcomes_chart || undefined,
+          }
+        : undefined,
+    nextSteps: row.next_steps || undefined,
     status: row.status,
     year: row.year || undefined,
     summary: row.summary || undefined,
@@ -17,6 +40,7 @@ function dbRowToProject(row: any): Project {
     },
     tech: {
       stack: row.tech_stack || [],
+      stackGroups: row.tech_stack_groups || undefined,
       architecture: row.architecture || undefined,
       technicalProblemSolved: row.technical_problem_solved || undefined,
       keyDecisions: row.key_decisions || undefined,
@@ -28,18 +52,6 @@ function dbRowToProject(row: any): Project {
             }
           : undefined,
     },
-    impact:
-      row.impact_metrics ||
-      row.impact_results?.length ||
-      row.impact_learnings?.length
-        ? {
-            metrics: row.impact_metrics || undefined,
-            results: row.impact_results || undefined,
-            learnings: row.impact_learnings || undefined,
-          }
-        : undefined,
-    screenshots: row.screenshots || undefined,
-    demoCredentials: row.demo_credentials || undefined,
   }
 }
 

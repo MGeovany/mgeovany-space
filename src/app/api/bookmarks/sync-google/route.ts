@@ -73,7 +73,7 @@ function parseChromeBookmarksHTML(html: string): ChromeBookmark[] {
   // Try the standard Chrome bookmarks pattern
   // Match: <DT><A HREF="url" [attributes]>Title</A></DT>
   const standardPattern =
-    /<DT><A\s+[^>]*HREF\s*=\s*["']([^"']+)["'][^>]*>(.*?)<\/A><\/DT>/gis
+    /<DT><A\s+[^>]*HREF\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/A><\/DT>/gi
 
   let linkMatches = Array.from(html.matchAll(standardPattern))
   console.log(
@@ -166,11 +166,9 @@ function parseChromeBookmarksHTML(html: string): ChromeBookmark[] {
 
   // Fallback to cheerio if regex didn't work
   const $ = cheerio.load(html, {
-    xml: {
-      decodeEntities: false,
-      lowerCaseTags: false,
-      lowerCaseAttributeNames: false,
-    },
+    decodeEntities: false,
+    lowerCaseTags: false,
+    lowerCaseAttributeNames: false,
   })
 
   // Try case-insensitive selectors
@@ -261,7 +259,11 @@ function parseChromeBookmarksHTML(html: string): ChromeBookmark[] {
           folders.unshift(folderName)
         }
       }
-      const parentTag = $parent[0]?.tagName?.toLowerCase()
+      const parentElement = $parent[0]
+      const parentTag =
+        parentElement && 'tagName' in parentElement
+          ? parentElement.tagName?.toLowerCase()
+          : undefined
       if (parentTag === 'html' || parentTag === 'body') break
       $parent = $parent.parent()
     }

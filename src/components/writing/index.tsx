@@ -53,11 +53,21 @@ export const WritingList = () => {
       <LayoutGroup>
         <div className="space-y-2 p-3">
           {data.length > 0 ? (
-            data.map((content) => {
+            data.map((content, index) => {
               const isActive = pathname === `/writing/${content.id}`
 
               return (
-                <motion.div layout key={content.id}>
+                <motion.div
+                  layout
+                  key={content.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.3,
+                    delay: index * 0.05,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                >
                   <BlogListItem active={isActive} blog={content} />
                 </motion.div>
               )

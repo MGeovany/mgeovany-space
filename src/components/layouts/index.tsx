@@ -1,8 +1,10 @@
 'use client'
+import { AnimatePresence } from 'framer-motion'
 import { usePathname } from 'next/navigation'
 import { ReactElement, ReactNode } from 'react'
 
 import { Sidebar } from '../sidebar/'
+import { PageTransition } from '../transitions/page-transition'
 
 interface Props {
   list: ReactElement | null
@@ -44,7 +46,9 @@ export function SiteLayout({ children }: { children: ReactNode }) {
           shouldHideSidebar ? 'max-h-screen overflow-y-auto' : ''
         }`}
       >
-        {children}
+        <AnimatePresence mode="wait">
+          <PageTransition key={pathname}>{children}</PageTransition>
+        </AnimatePresence>
       </div>
     </div>
   )

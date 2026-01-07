@@ -1,3 +1,6 @@
+'use client'
+
+import { motion } from 'framer-motion'
 import { GlobeIcon } from 'lucide-react'
 import Link from 'next/link'
 
@@ -6,11 +9,35 @@ import { Project } from '@/types/project'
 
 import { GithubIcon } from '../icons/shared'
 
-export function ProjectCard({ project }: { project: Project }) {
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.4,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+}
+
+export function ProjectCard({
+  project,
+  index = 0,
+}: {
+  project: Project
+  index?: number
+}) {
   const { code, live } = project.links
 
   return (
-    <div className="group relative flex h-full flex-col rounded-2xl border border-neutral-800 bg-neutral-900/30 shadow-xs transition hover:border-neutral-700 hover:bg-neutral-900/40 hover:shadow-cardHover">
+    <motion.div
+      variants={cardVariants}
+      initial="hidden"
+      animate="visible"
+      transition={{ delay: index * 0.1 }}
+      className="group relative flex h-full flex-col rounded-2xl border border-neutral-800 bg-neutral-900/30 shadow-xs transition hover:border-neutral-700 hover:bg-neutral-900/40 hover:shadow-cardHover"
+    >
       <Link
         href={`/projects/${project.id}`}
         className="flex flex-1 flex-col p-5"
@@ -79,6 +106,6 @@ export function ProjectCard({ project }: { project: Project }) {
           ) : null}
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }

@@ -17,7 +17,7 @@ const BlogForm = ({ blog, onClose }: BlogFormProps) => {
   useEffect(() => {
     if (blog) {
       setTitle(blog.title)
-      setContent(blog.content)
+      setContent(blog.content || '')
     }
   }, [blog])
 
@@ -125,7 +125,7 @@ const BlogForm = ({ blog, onClose }: BlogFormProps) => {
           </div>
           {/* Previsualización en markdown */}
           <div className="mt-5 w-1/2 rounded border border-neutral-800 bg-neutral-900 p-4 text-neutral-100">
-            <MarkdownRenderer children={content} />
+            <MarkdownRenderer>{content}</MarkdownRenderer>
             {content}
           </div>
         </div>

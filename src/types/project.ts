@@ -4,19 +4,39 @@ export type ProjectStatus =
   | 'Paused'
   | 'Archived'
 
-export interface ProjectScreenshot {
-  src: string
-  alt: string
-}
-
 export interface ProjectImpactMetric {
   label: string
   value: string
   note?: string
 }
 
+export interface ProjectTradeoff {
+  decision: string
+  tradeoff: string
+}
+
+export interface ProjectStackGroup {
+  label: string
+  items: string[]
+}
+
+export interface ProjectOutcomesChartPoint {
+  label: string
+  value: number
+}
+
+export interface ProjectOutcomes {
+  metrics?: ProjectImpactMetric[]
+  narrative?: string[]
+  chart?: {
+    unit?: string
+    points: ProjectOutcomesChartPoint[]
+  }
+}
+
 export interface ProjectTech {
   stack: string[]
+  stackGroups?: ProjectStackGroup[]
   architecture?: string
   technicalProblemSolved?: string
   keyDecisions?: string[]
@@ -26,22 +46,23 @@ export interface ProjectTech {
   }
 }
 
-export interface ProjectImpact {
-  metrics?: ProjectImpactMetric[]
-  results?: string[]
-  learnings?: string[]
-}
-
-export interface ProjectDemoCredentials {
-  username?: string
-  password?: string
-  note?: string
-}
-
 export interface Project {
   id: string
   name: string
   motivation: string
+  tagline?: string
+  role?: string
+  scope?: string
+  timeframe?: {
+    start?: string
+    end?: string
+  }
+  problem?: string
+  solution?: string
+  constraints?: string[]
+  tradeoffs?: ProjectTradeoff[]
+  outcomes?: ProjectOutcomes
+  nextSteps?: string[]
   status: ProjectStatus
   summary?: string
   links: {
@@ -49,8 +70,5 @@ export interface Project {
     live?: string
   }
   tech: ProjectTech
-  impact?: ProjectImpact
-  screenshots?: ProjectScreenshot[]
-  demoCredentials?: ProjectDemoCredentials
   year?: string
 }

@@ -63,12 +63,12 @@ export function DialogComponent({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <div className="fixed bottom-0 left-0 max-h-screen w-full transform-gpu overflow-y-auto rounded-t-xl border border-gray-700 bg-gray-800 pb-10 shadow-2xl sm:bottom-auto sm:left-1/2 sm:top-1/4 sm:max-w-sm sm:-translate-x-1/2 sm:rounded-xl sm:pb-0 md:max-w-md lg:max-w-lg">
+              <div className="border-gray-700 bg-gray-800 fixed bottom-0 left-0 max-h-screen w-full transform-gpu overflow-y-auto rounded-t-xl border pb-10 shadow-2xl sm:bottom-auto sm:left-1/2 sm:top-1/4 sm:max-w-sm sm:-translate-x-1/2 sm:rounded-xl sm:pb-0 md:max-w-md lg:max-w-lg">
                 <div className="flex flex-col">
-                  <div className="sticky top-0 flex w-full items-center justify-between border-b border-gray-700 bg-gray-800 py-2 pl-4 pr-2">
+                  <div className="border-gray-700 bg-gray-800 sticky top-0 flex w-full items-center justify-between border-b py-2 pl-4 pr-2">
                     <Dialog.Title
                       as="h3"
-                      className="text-primary text-left text-sm font-semibold"
+                      className="left text-sm font-semibold text-primary"
                     >
                       {title}
                     </Dialog.Title>

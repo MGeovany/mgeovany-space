@@ -61,8 +61,8 @@ export function ProjectDetail({ id }: { id: string }) {
           description: data.title,
           images: [
             {
-              url: routes.projectIdeas.seo.image || '',
-              alt: routes.projectIdeas.seo.description,
+              url: routes.projects.seo.image || '',
+              alt: routes.projects.seo.description,
             },
           ],
         }}
@@ -109,9 +109,10 @@ export function ProjectDetail({ id }: { id: string }) {
             {data.url && (
               <MarkdownRenderer
                 className="prose italic opacity-70"
-                children={data.description}
                 variant="comment"
-              />
+              >
+                {data.description}
+              </MarkdownRenderer>
             )}
           </Detail.Header>
           <div className="mt-6">

@@ -2,6 +2,7 @@
 
 import axios from 'axios'
 import { formatDistanceToNowStrict } from 'date-fns'
+import { motion } from 'framer-motion'
 import { Calendar, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import { NextSeo } from 'next-seo'
@@ -101,54 +102,69 @@ export function BlogDetail({ id }: { id: string }) {
           scrollContainerRef={scrollContainerRef}
         />
         <Detail.ContentContainer>
-          <Detail.Header>
-            <div className="space-y-4">
-              <div>
-                <Detail.Title ref={titleRef}>{data.title}</Detail.Title>
-                {data.excerpt && (
-                  <p className="mt-3 text-lg leading-relaxed text-neutral-400">
-                    {data.excerpt}
-                  </p>
-                )}
-              </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Detail.Header>
+              <div className="space-y-4">
+                <div>
+                  <Detail.Title ref={titleRef}>{data.title}</Detail.Title>
+                  {data.excerpt && (
+                    <p className="mt-3 text-lg leading-relaxed text-neutral-400">
+                      {data.excerpt}
+                    </p>
+                  )}
+                </div>
 
-              <div className="flex flex-wrap items-center gap-4 border-b border-neutral-800 pb-4 text-sm text-neutral-500">
-                {data.source && data.source !== 'local' && (
-                  <div className="flex items-center gap-2 rounded-full bg-neutral-800 px-3 py-1">
-                    {data.source === 'medium' && (
-                      <Icons.medium className="h-4 w-4" />
-                    )}
-                    {data.source === 'devto' && (
-                      <Icons.devTo className="h-4 w-4" />
-                    )}
-                    <span className="capitalize">{data.source}</span>
-                  </div>
-                )}
-                {publishedDate && (
-                  <div className="flex items-center gap-2">
-                    <Calendar size={14} />
-                    <span>Published {publishedDate}</span>
-                  </div>
-                )}
-                {data.url && (
-                  <Link
-                    href={data.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 transition-colors hover:text-neutral-300"
-                  >
-                    <ExternalLink size={14} />
-                    <span className="max-w-[200px] truncate">
-                      {new URL(data.url).hostname.replace('www.', '')}
-                    </span>
-                  </Link>
-                )}
+                <div className="flex flex-wrap items-center gap-4 border-b border-neutral-800 pb-4 text-sm text-neutral-500">
+                  {data.source && data.source !== 'local' && (
+                    <div className="flex items-center gap-2 rounded-full bg-neutral-800 px-3 py-1">
+                      {data.source === 'medium' && (
+                        <Icons.medium className="h-4 w-4" />
+                      )}
+                      {data.source === 'devto' && (
+                        <Icons.devTo className="h-4 w-4" />
+                      )}
+                      <span className="capitalize">{data.source}</span>
+                    </div>
+                  )}
+                  {publishedDate && (
+                    <div className="flex items-center gap-2">
+                      <Calendar size={14} />
+                      <span>Published {publishedDate}</span>
+                    </div>
+                  )}
+                  {data.url && (
+                    <Link
+                      href={data.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 transition-colors hover:text-neutral-300"
+                    >
+                      <ExternalLink size={14} />
+                      <span className="max-w-[200px] truncate">
+                        {new URL(data.url).hostname.replace('www.', '')}
+                      </span>
+                    </Link>
+                  )}
+                </div>
               </div>
-            </div>
-          </Detail.Header>
+            </Detail.Header>
+          </motion.div>
 
           {(data.content || data.content_html) && (
-            <div className="mt-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.4,
+                delay: 0.1,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              className="mt-8"
+            >
               {data.content_html ? (
                 <div
                   className="prose prose-invert max-w-none prose-headings:text-neutral-100 prose-p:text-neutral-300 prose-a:text-blue-400 prose-strong:text-neutral-100 prose-code:text-neutral-200 prose-pre:border prose-pre:border-neutral-800 prose-pre:bg-neutral-900"
@@ -159,7 +175,7 @@ export function BlogDetail({ id }: { id: string }) {
                   {data.content || ''}
                 </MarkdownRenderer>
               )}
-            </div>
+            </motion.div>
           )}
         </Detail.ContentContainer>
       </Detail.Container>

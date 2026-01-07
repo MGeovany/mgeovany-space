@@ -14,10 +14,11 @@ export function CodeBlock({
       showLineNumbers={false}
       useInlineStyles={false}
       language={language}
-      children={text}
       style={{}}
       wrapLongLines
       {...rest}
-    />
+    >
+      {text}
+    </SyntaxHighlighter>
   )
 }

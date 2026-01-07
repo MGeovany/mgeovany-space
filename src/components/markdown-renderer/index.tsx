@@ -24,10 +24,10 @@ function LinkRenderer({ href, ...rest }: any) {
     if (url.origin === 'https://mgeovany.com') {
       return <Link href={href} {...rest} />
     }
-    return <a target="_blank" rel="noopener" href={href} {...rest} />
+    return <a target="_blank" rel="noreferrer" href={href} {...rest} />
   } catch (e) {
     toast.error(`[Markdown] Error parsing link: ${e}`)
-    return <a target="_blank" rel="noopener" href={href} {...rest} />
+    return <a target="_blank" rel="noreferrer" href={href} {...rest} />
   }
 }
 

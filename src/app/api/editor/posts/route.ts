@@ -50,7 +50,9 @@ async function requireAllowedUser(request: NextRequest) {
         getAll() {
           return cookieList
         },
-        setAll(cookiesToSet) {
+        setAll(
+          cookiesToSet: Array<{ name: string; value: string; options?: any }>
+        ) {
           cookiesToSet.forEach(({ name, value, options }) => {
             request.cookies.set(name, value)
             response.cookies.set(name, value, options)

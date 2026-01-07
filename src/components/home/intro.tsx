@@ -9,7 +9,6 @@ import { Detail } from '@/components/list-detail/detail'
 import { TitleBar } from '@/components/list-detail/title-bar'
 import { toggleLogin } from '@/constants'
 import { useSupabaseUser } from '@/hooks/useSupabaseUser'
-import { registerUser } from '@/services/api/register-user'
 
 function SectionTitle(props: any) {
   return (
@@ -255,10 +254,7 @@ export function Intro() {
               <div className="flex flex-col space-y-3">
                 {workHistory.map((job) => (
                   <TableRow
-                    rel={job.href ? 'noopener noreferrer' : ''}
-                    className={job.href ? 'hover:underline' : 'no-underline'}
                     href={job.href ?? ''}
-                    target={job.href ? '_blank' : '_self'}
                     title={job.title}
                     subtitle={job.subtitle}
                     date={job.date}
@@ -279,7 +275,7 @@ export function Intro() {
                     href={project.href}
                     title={project.title}
                     subtitle={project.subtitle}
-                    date={project.date}
+                    date=""
                   />
                 ))}
               </div>

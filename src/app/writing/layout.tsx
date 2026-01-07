@@ -1,6 +1,7 @@
-import { NextSeo } from 'next-seo'
 import { ReactNode } from 'react'
 
+import { ListDetailView } from '@/components/layouts'
+import { WritingList } from '@/components/writing'
 import routes from '@/config/routes'
 
 export const metadata = {
@@ -10,5 +11,12 @@ export const metadata = {
 }
 
 export default function WritingLayout({ children }: { children: ReactNode }) {
-  return <>{children}</>
+  return (
+    <ListDetailView
+      list={<WritingList />}
+      hasDetail
+      shouldHideSidebar={false}
+      detail={children}
+    />
+  )
 }

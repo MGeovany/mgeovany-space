@@ -149,8 +149,7 @@ export function SidebarNavigation() {
           trailingAccessory: null,
           isActive: pathname?.startsWith('/writing') || false,
           isExternal: false,
-          trailingAction:
-            getUserRole(user) === 'admin' ? ThisAddBlogDialog : null,
+          trailingAction: getUserRole() === 'admin' ? ThisAddBlogDialog : null,
         },
       ],
     },
@@ -174,7 +173,7 @@ export function SidebarNavigation() {
           trailingAccessory: null,
           isActive: pathname?.startsWith('/projects') || false,
           trailingAction:
-            getUserRole(user) === 'admin' ? ThisAddProjectDialog : null,
+            getUserRole() === 'admin' ? ThisAddProjectDialog : null,
           isExternal: false,
         },
       ],

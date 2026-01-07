@@ -97,11 +97,21 @@ export const BookmarksList = () => {
                 My Bookmarks
               </h2>
               <div className="space-y-1">
-                {bookmarks.map((content) => {
+                {bookmarks.map((content, index) => {
                   const isActive = pathname === `/bookmarks/${content.id}`
 
                   return (
-                    <motion.div layout key={content.id}>
+                    <motion.div
+                      layout
+                      key={content.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        duration: 0.3,
+                        delay: index * 0.05,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
+                    >
                       <BookmarksListItem active={isActive} bookmark={content} />
                     </motion.div>
                   )
@@ -117,13 +127,23 @@ export const BookmarksList = () => {
                 Chrome Bookmarks
               </h2>
               <div className="space-y-1">
-                {googleBookmarks.map((bookmark) => {
+                {googleBookmarks.map((bookmark, index) => {
                   const domain = bookmark.url
                     ? new URL(bookmark.url).hostname.replace('www.', '')
                     : ''
 
                   return (
-                    <motion.div layout key={bookmark.id}>
+                    <motion.div
+                      layout
+                      key={bookmark.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        duration: 0.3,
+                        delay: (bookmarks.length + index) * 0.05,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
+                    >
                       <a
                         href={bookmark.url}
                         target="_blank"
