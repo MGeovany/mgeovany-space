@@ -15,11 +15,11 @@ export function SEO() {
         <link rel="icon" href="/static/favicon.ico" sizes="any" />
         <link
           rel="icon"
-          href="/static/favicon.svg"
-          type="image/svg+xml"
+          href="/static/favicon.ico"
+          type="image/x-icon"
           sizes="any"
         />
-        <link rel="mask-icon" href="/static/favicon.svg" />
+        <link rel="mask-icon" href="/static/favicon.ico" />
         <link rel="apple-touch-icon" href="/static/meta/apple-touch-icon.png" />
         <link rel="manifest" href="/static/meta/manifest.webmanifest" />
         <meta
