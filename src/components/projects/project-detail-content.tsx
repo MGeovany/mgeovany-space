@@ -1,35 +1,27 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { GlobeIcon } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight, GlobeIcon } from 'lucide-react'
 import Link from 'next/link'
 import { MutableRefObject, useRef } from 'react'
 
 import { GithubIcon } from '@/components/icons/shared'
 import { TitleBar } from '@/components/list-detail/title-bar'
-import { StackBadges, StatusBadge } from '@/components/projects/project-ui'
+import { StackBadges } from '@/components/projects/project-ui'
 import { Project } from '@/types/project'
 
-function formatLinkLabel(url: string) {
-  try {
-    const u = new URL(url)
-    const hostname = u.hostname.replace('www.', '')
-    if (hostname === 'github.com') {
-      const path = u.pathname.replace(/\/+$/, '')
-      return `github.com${path}`
-    }
-    return hostname
-  } catch {
-    return url
-  }
-}
-
-export function ProjectDetailContent({ project }: { project: Project }) {
+export function ProjectDetailContent({
+  project,
+  prevId,
+  nextId,
+}: {
+  project: Project
+  prevId: string | null
+  nextId: string | null
+}) {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-
   const { code, live } = project.links
-  const codeLabel = code ? formatLinkLabel(code) : null
-  const liveLabel = live ? formatLinkLabel(live) : null
+  const tagline = project.tagline || project.motivation
 
   return (
     <div
@@ -42,165 +34,121 @@ export function ProjectDetailContent({ project }: { project: Project }) {
         }
         title={project.name}
         globalMenu={true}
-        backButton={true}
-        backButtonHref="/projects"
       />
-      <div className="mx-auto w-full max-w-3xl px-6 py-10 md:px-10">
-        <motion.header
-          initial={{ opacity: 0, y: 20 }}
+      <div className="mx-auto w-full max-w-3xl px-6 pb-24 pt-6 md:px-10 md:pt-10">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-2"
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-4xl font-semibold tracking-tight text-white md:text-5xl">
-                {project.name}
-              </h1>
-              <StatusBadge status={project.status} />
-            </div>
-            {project.tagline ? (
-              <p className="max-w-3xl text-lg leading-relaxed text-neutral-200 md:text-xl">
-                {project.tagline}
+          <Link
+            href="/projects"
+            className="inline-flex items-center gap-1.5 text-sm text-neutral-400 transition-colors hover:text-white"
+          >
+            <ArrowLeft size={16} />
+            All projects
+          </Link>
+
+          {project.year ? (
+            <p className="my-4 text-sm text-neutral-500">{project.year}</p>
+          ) : null}
+
+          <h1 className="mt-1 text-3xl font-semibold text-white md:text-4xl">
+            {project.name}
+          </h1>
+
+          {tagline ? (
+            <p className="mt-4 text-base leading-relaxed text-neutral-600">
+              {tagline}
+            </p>
+          ) : null}
+
+          <div className="mt-6 flex flex-wrap items-center gap-6">
+            {live ? (
+              <a
+                href={live}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm font-medium text-neutral-400 transition hover:text-white"
+              >
+                <GlobeIcon size={16} />
+                Visit
+              </a>
+            ) : null}
+            {code ? (
+              <a
+                href={code}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm font-medium text-neutral-400 transition hover:text-white"
+              >
+                <GithubIcon size={16} />
+                Source
+              </a>
+            ) : null}
+          </div>
+
+          <hr className="mt-8 border-neutral-800" />
+
+          <div className="prose prose-invert mt-8 max-w-none">
+            <p className="leading-relaxed text-neutral-300">
+              {project.motivation}
+            </p>
+            {project.summary ? (
+              <p className="mt-4 leading-relaxed text-neutral-300">
+                {project.summary}
+              </p>
+            ) : null}
+            {project.tech.architecture ? (
+              <p className="mt-4 leading-relaxed text-neutral-300">
+                {project.tech.architecture}
               </p>
             ) : null}
           </div>
-        </motion.header>
 
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-10 max-w-4xl"
-        >
-          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-            Motivation
-          </p>
-          <p className="mt-4 text-sm leading-loose text-neutral-200">
-            {project.motivation}
-          </p>
-        </motion.section>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-8 rounded-2xl border border-neutral-900 p-4"
-        >
-          <div className="w-full gap-10 md:grid-cols-2">
-            <section>
-              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                Summary
+          {project.tech.stack && project.tech.stack.length > 0 ? (
+            <section className="mt-12">
+              <hr className="border-neutral-800" />
+              <p className="mt-6 text-sm font-semibold uppercase tracking-wide text-neutral-400">
+                Stack
               </p>
-              <p className="mt-4 text-sm leading-loose text-neutral-200">
-                {project.summary || '—'}
-              </p>
-            </section>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-8 rounded-2xl border border-neutral-900 p-4 pt-10"
-        >
-          <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
-            <section>
-              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
-                Tech & Architecture
-              </p>
-
               <div className="mt-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                  Stack
-                </p>
-                <div className="mt-2">
-                  <StackBadges stack={project.tech.stack} />
-                </div>
+                <StackBadges stack={project.tech.stack} variant="dark" />
               </div>
+              <hr className="mt-6 border-neutral-800" />
             </section>
-
-            <section>
-              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
-                Links
-              </p>
-
-              <div className="mt-5 space-y-3">
-                {live ? (
-                  <Link
-                    href={live}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex items-center justify-between rounded-2xl border border-neutral-900 bg-neutral-950 px-4 py-3 transition hover:bg-neutral-900"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-900 bg-neutral-950 text-neutral-200">
-                        <GlobeIcon size={16} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-neutral-200">
-                          Live
-                        </p>
-                        <p className="font-mono text-xs text-neutral-500">
-                          {liveLabel || live}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                ) : (
-                  <div className="rounded-2xl border border-neutral-900 bg-neutral-950 px-4 py-3">
-                    <p className="text-sm font-semibold text-neutral-200">
-                      Live
-                    </p>
-                    <p className="text-xs text-neutral-500">—</p>
-                  </div>
-                )}
-
-                {code ? (
-                  <Link
-                    href={code}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex items-center justify-between rounded-2xl border border-neutral-900 bg-neutral-950 px-4 py-3 transition hover:bg-neutral-900"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-900 bg-neutral-950 text-neutral-200">
-                        <GithubIcon size={16} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-neutral-200">
-                          Code
-                        </p>
-                        <p className="font-mono text-xs text-neutral-500">
-                          {codeLabel || code}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                ) : (
-                  <div className="rounded-2xl border border-neutral-900 bg-neutral-950 px-4 py-3">
-                    <p className="text-sm font-semibold text-neutral-200">
-                      Code
-                    </p>
-                    <p className="text-xs text-neutral-500">—</p>
-                  </div>
-                )}
-              </div>
-            </section>
-          </div>
-          {project.tech.architecture ? (
-            <div className="mt-5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                Architecture
-              </p>
-            </div>
           ) : null}
-
-          <p className="mt-2 text-sm leading-relaxed text-neutral-200">
-            {project.tech.architecture}
-          </p>
         </motion.div>
+
+        {(prevId != null || nextId != null) && (
+          <nav
+            className="mt-16 flex items-center justify-between pt-8"
+            aria-label="Previous and next project"
+          >
+            {prevId ? (
+              <Link
+                href={`/projects/${prevId}`}
+                className="flex items-center gap-2 text-sm font-medium text-neutral-400 transition-colors hover:text-white"
+              >
+                <ChevronLeft size={20} />
+                Previous project
+              </Link>
+            ) : (
+              <span />
+            )}
+            {nextId ? (
+              <Link
+                href={`/projects/${nextId}`}
+                className="flex items-center gap-2 text-sm font-medium text-neutral-400 transition-colors hover:text-white"
+              >
+                Next project
+                <ChevronRight size={20} />
+              </Link>
+            ) : (
+              <span />
+            )}
+          </nav>
+        )}
       </div>
     </div>
   )

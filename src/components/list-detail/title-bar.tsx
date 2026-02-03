@@ -143,7 +143,8 @@ export function TitleBar({
             {backButton && (
               <Link
                 href={backButtonHref ?? ''}
-                className="hover:bg-gray-200 dark:hover:bg-gray-800 flex items-center justify-center rounded-md p-2 text-primary lg:hidden"
+                className="hover:bg-gray-200 dark:hover:bg-gray-800 flex items-center justify-center rounded-md p-2 text-primary"
+                aria-label="Back"
               >
                 <ArrowLeft size={16} className="text-primary" />
               </Link>

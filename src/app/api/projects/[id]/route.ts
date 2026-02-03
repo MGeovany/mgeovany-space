@@ -102,9 +102,9 @@ function dbRowToProject(row: any): Project {
     timeframe:
       row.timeframe_start || row.timeframe_end
         ? {
-            start: row.timeframe_start || undefined,
-            end: row.timeframe_end || undefined,
-          }
+          start: row.timeframe_start || undefined,
+          end: row.timeframe_end || undefined,
+        }
         : undefined,
     problem: row.problem || undefined,
     solution: row.solution || undefined,
@@ -113,22 +113,24 @@ function dbRowToProject(row: any): Project {
     outcomes:
       row.outcomes_metrics || row.outcomes_narrative || row.outcomes_chart
         ? {
-            metrics: row.outcomes_metrics || undefined,
-            narrative: row.outcomes_narrative || undefined,
-            chart: row.outcomes_chart || undefined,
-          }
+          metrics: row.outcomes_metrics || undefined,
+          narrative: row.outcomes_narrative || undefined,
+          chart: row.outcomes_chart || undefined,
+        }
         : // Back-compat (legacy impact_*)
-          row.impact_metrics || row.impact_results || row.impact_learnings
+        row.impact_metrics || row.impact_results || row.impact_learnings
           ? {
-              metrics: row.impact_metrics || undefined,
-              narrative:
-                row.impact_results || row.impact_learnings || undefined,
-            }
+            metrics: row.impact_metrics || undefined,
+            narrative:
+              row.impact_results || row.impact_learnings || undefined,
+          }
           : undefined,
     nextSteps: row.next_steps || undefined,
     status: row.status,
     year: row.year || undefined,
     summary: row.summary || undefined,
+    shortDesc: row.short_desc || undefined,
+    showOnHome: Boolean(row.show_on_home),
     links: {
       code: row.code_link || undefined,
       live: row.live_link || undefined,
@@ -142,9 +144,9 @@ function dbRowToProject(row: any): Project {
       diagram:
         row.diagram_title || row.diagram_lines?.length
           ? {
-              title: row.diagram_title || undefined,
-              lines: row.diagram_lines || [],
-            }
+            title: row.diagram_title || undefined,
+            lines: row.diagram_lines || [],
+          }
           : undefined,
     },
   }
@@ -173,6 +175,8 @@ function projectToDbRow(project: Partial<Project>): any {
     status: project.status,
     year: project.year || null,
     summary: project.summary || null,
+    short_desc: project.shortDesc || null,
+    show_on_home: project.showOnHome ?? false,
     code_link: project.links?.code || null,
     live_link: project.links?.live || null,
     tech_stack: project.tech?.stack || [],
@@ -248,6 +252,8 @@ export async function PUT(
     status,
     year,
     summary,
+    shortDesc,
+    showOnHome,
     links,
     tech,
   } = body
@@ -271,6 +277,8 @@ export async function PUT(
     ...(status && { status }),
     ...(year !== undefined && { year: year || undefined }),
     ...(summary !== undefined && { summary: summary || undefined }),
+    ...(shortDesc !== undefined && { shortDesc: shortDesc || undefined }),
+    ...(showOnHome !== undefined && { showOnHome: Boolean(showOnHome) }),
     ...(links && {
       links: {
         code: links.code || undefined,

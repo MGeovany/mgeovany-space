@@ -37,6 +37,8 @@ function dbRowToProject(row: any): Project {
     status: row.status,
     year: row.year || undefined,
     summary: row.summary || undefined,
+    shortDesc: row.short_desc || undefined,
+    showOnHome: Boolean(row.show_on_home),
     links: {
       code: row.code_link || undefined,
       live: row.live_link || undefined,
@@ -117,17 +119,29 @@ export async function generateMetadata({
 export default async function Page({ params }: { params: { id: string } }) {
   const supabase = await createClient()
 
-  const { data, error } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('id', params.id)
-    .single()
+  const [{ data: projectData, error }, { data: allIds }] = await Promise.all([
+    supabase.from('projects').select('*').eq('id', params.id).single(),
+    supabase
+      .from('projects')
+      .select('id')
+      .neq('status', 'Archived')
+      .order('created_at', { ascending: false }),
+  ])
 
-  if (error || !data) {
+  if (projectData == null || error) {
     return notFound()
   }
 
-  const project = dbRowToProject(data)
+  const project = dbRowToProject(projectData)
+  const ids = (allIds || []).map((r) => r.id)
+  const currentIndex = ids.indexOf(params.id)
+  const prevId = currentIndex > 0 ? ids[currentIndex - 1] : null
+  const nextId =
+    currentIndex >= 0 && currentIndex < ids.length - 1
+      ? ids[currentIndex + 1]
+      : null
 
-  return <ProjectDetailContent project={project} />
+  return (
+    <ProjectDetailContent project={project} prevId={prevId} nextId={nextId} />
+  )
 }

@@ -21,14 +21,24 @@ export function StatusBadge({ status }: { status: ProjectStatus }) {
   )
 }
 
-export function StackBadges({ stack }: { stack: string[] }) {
+export function StackBadges({
+  stack,
+  variant = 'default',
+}: {
+  stack: string[]
+  variant?: 'default' | 'dark'
+}) {
+  const base =
+    'inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-medium'
+  const styles =
+    variant === 'dark'
+      ? 'bg-neutral-900 text-white'
+      : 'border border-gray-200 text-gray-700 dark:border-gray-800 dark:text-gray-200 bg-white shadow-xs dark:bg-black dark:text-gray-200'
+
   return (
     <div className="flex flex-wrap gap-2">
       {stack.map((s) => (
-        <span
-          key={s}
-          className="border-gray-200 text-gray-700 dark:border-gray-800 dark:text-gray-200 inline-flex items-center rounded-full border bg-white px-2.5 py-1 text-xs font-semibold shadow-xs dark:bg-black"
-        >
+        <span key={s} className={`${base} ${styles}`}>
           {s}
         </span>
       ))}

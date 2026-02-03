@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 
 import { GithubIcon } from '@/components/icons/shared'
-import { ProjectForm } from '@/components/projects/project-form'
+import { ProjectJsonEditor } from '@/components/projects/project-json-editor'
 import { useSupabaseUser } from '@/hooks/useSupabaseUser'
 import { isAllowedEditorEmail } from '@/lib/editor/allowed'
 import { Project } from '@/types/project'
@@ -169,7 +169,7 @@ export default function EditProjectPage() {
         </div>
 
         <div className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-6">
-          <ProjectForm
+          <ProjectJsonEditor
             project={project}
             onClose={handleClose}
             onSuccess={handleSuccess}

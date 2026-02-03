@@ -3,8 +3,7 @@
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
-import { Button, PrimaryButton, Size } from '@/components/button'
-import { ProjectForm } from '@/components/projects/project-form'
+import { ProjectJsonEditor } from '@/components/projects/project-json-editor'
 import { useSupabaseUser } from '@/hooks/useSupabaseUser'
 import { isAllowedEditorEmail } from '@/lib/editor/allowed'
 import { createClient } from '@/lib/supabase/client'
@@ -86,7 +85,7 @@ export default function NewProjectPage() {
         </div>
 
         <div className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-6">
-          <ProjectForm onClose={handleClose} onSuccess={handleSuccess} />
+          <ProjectJsonEditor onClose={handleClose} onSuccess={handleSuccess} />
         </div>
       </div>
     </div>

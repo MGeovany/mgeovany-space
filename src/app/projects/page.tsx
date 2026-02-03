@@ -2,6 +2,9 @@ import { ProjectsExplorer } from '@/components/projects/projects-explorer'
 import { createClient } from '@/lib/supabase/server'
 import { Project } from '@/types/project'
 
+// Always render fresh so the latest UI is shown
+export const dynamic = 'force-dynamic'
+
 // Helper function to convert DB row to Project type
 function dbRowToProject(row: any): Project {
   return {
@@ -34,6 +37,8 @@ function dbRowToProject(row: any): Project {
     status: row.status,
     year: row.year || undefined,
     summary: row.summary || undefined,
+    shortDesc: row.short_desc || undefined,
+    showOnHome: Boolean(row.show_on_home),
     links: {
       code: row.code_link || undefined,
       live: row.live_link || undefined,

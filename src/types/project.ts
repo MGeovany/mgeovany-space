@@ -65,6 +65,10 @@ export interface Project {
   nextSteps?: string[]
   status: ProjectStatus
   summary?: string
+  /** Short one-line description for home and list views */
+  shortDesc?: string
+  /** When true, project is shown on the homepage (/) */
+  showOnHome?: boolean
   links: {
     code?: string
     live?: string

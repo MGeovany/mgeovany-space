@@ -1,8 +1,9 @@
 'use client'
+
 import { MutableRefObject, useRef } from 'react'
 
 import { TitleBar } from '@/components/list-detail/title-bar'
-import { ProjectCard } from '@/components/projects/project-card'
+import { ProjectListRow } from '@/components/projects/project-list-row'
 import { Project } from '@/types/project'
 
 export function ProjectsExplorer({ projects }: { projects: Project[] }) {
@@ -11,6 +12,7 @@ export function ProjectsExplorer({ projects }: { projects: Project[] }) {
   return (
     <div
       ref={scrollContainerRef}
+      data-view="projects-list"
       className="relative flex h-full max-h-screen w-full flex-col overflow-y-auto bg-gradient-to-b from-neutral-950 via-neutral-950 to-neutral-900"
     >
       <TitleBar
@@ -20,31 +22,30 @@ export function ProjectsExplorer({ projects }: { projects: Project[] }) {
         title="Projects"
         globalMenu={true}
       />
-      <div className="mx-auto w-full max-w-6xl px-4 py-10 md:px-8">
-        <div className="space-y-2">
-          <p className="max-w-2xl text-secondary">
+      <div className="mx-auto w-full max-w-3xl px-4 py-10 md:px-8">
+        <header className="mb-10">
+          <h1 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+            Products
+          </h1>
+          <p className="mt-2 text-sm leading-relaxed text-neutral-400">
             A curated set of projects with clear product motivation and
-            technical decisions.
+            technical decisions. Things built for user needs focusing on
+            building value and exploring new approaches.
           </p>
-          <p className="text-tertiary text-sm">
-            Showing <span className="font-semibold">{projects.length}</span>
-          </p>
-        </div>
+        </header>
 
-        <div className="mt-10">
+        <div>
           {projects.length === 0 ? (
-            <div className="rounded-2xl border border-neutral-800 bg-neutral-900/30 p-8 text-center shadow-xs">
-              <p className="text-base font-bold text-primary">
-                No projects yet
-              </p>
-              <p className="text-tertiary mt-1 text-sm">
+            <div className="rounded-2xl border border-neutral-800 bg-neutral-900/30 p-8 text-center">
+              <p className="text-base font-bold text-white">No projects yet</p>
+              <p className="mt-1 text-sm text-neutral-500">
                 Add your first project from the editor.
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {projects.map((p, index) => (
-                <ProjectCard key={p.id} project={p} index={index} />
+            <div className="divide-y divide-neutral-800/80">
+              {projects.map((p) => (
+                <ProjectListRow key={p.id} project={p} />
               ))}
             </div>
           )}

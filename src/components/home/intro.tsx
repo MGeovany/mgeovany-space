@@ -9,6 +9,7 @@ import { Detail } from '@/components/list-detail/detail'
 import { TitleBar } from '@/components/list-detail/title-bar'
 import { toggleLogin } from '@/constants'
 import { useSupabaseUser } from '@/hooks/useSupabaseUser'
+import { Project } from '@/types/project'
 
 function SectionTitle(props: any) {
   return (
@@ -28,16 +29,19 @@ interface TableRowProps {
   title: string
   date: string
   subtitle?: string
+  /** When false, use Link for same-tab navigation (e.g. /projects/id) */
+  external?: boolean
 }
 
-function TableRow({ href, title, subtitle, date }: TableRowProps) {
-  return (
-    <a
-      target="_blank"
-      rel="noopener noreferrer"
-      href={href}
-      className="group flex flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-4"
-    >
+function TableRow({
+  href,
+  title,
+  subtitle,
+  date,
+  external = true,
+}: TableRowProps) {
+  const content = (
+    <>
       <strong className="line-clamp-2 font-medium text-neutral-100 group-hover:text-blue-500 group-hover:underline">
         {title}
       </strong>
@@ -46,7 +50,26 @@ function TableRow({ href, title, subtitle, date }: TableRowProps) {
       {date && (
         <span className="text-quaternary flex-none font-mono">{date}</span>
       )}
-    </a>
+    </>
+  )
+  const className =
+    'group flex flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-4'
+  if (external) {
+    return (
+      <a
+        target="_blank"
+        rel="noopener noreferrer"
+        href={href}
+        className={className}
+      >
+        {content}
+      </a>
+    )
+  }
+  return (
+    <Link href={href} className={className}>
+      {content}
+    </Link>
   )
 }
 
@@ -111,11 +134,13 @@ const workHistory = [
   },
   {
     title: 'OneTouch',
+    href: 'https://www.linkedin.com/in/m-geovany/',
     subtitle: 'Frontend Developer',
     date: 'Aug 23 — Jun 24',
   },
   {
     title: 'OnCorp',
+    href: 'https://www.linkedin.com/in/m-geovany/',
     subtitle: 'Frontend Developer',
     date: 'Nov 25 — Jan 26',
   },
@@ -127,7 +152,12 @@ const workHistory = [
   },
 ]
 
-export function Intro() {
+interface IntroProps {
+  /** Projects marked to show on homepage (from editor JSON showOnHome) */
+  featuredProjects?: Project[]
+}
+
+export function Intro({ featuredProjects }: IntroProps) {
   const [start, setStart] = useState(false)
   const { user } = useSupabaseUser()
   const titleRef = useRef<HTMLParagraphElement | null>(null)
@@ -269,15 +299,22 @@ export function Intro() {
             <SectionTitle>Projects</SectionTitle>
             <SectionContent>
               <div className="flex flex-col space-y-3">
-                {projects.map((project) => (
-                  <TableRow
-                    key={project.title}
-                    href={project.href}
-                    title={project.title}
-                    subtitle={project.subtitle}
-                    date=""
-                  />
-                ))}
+                {featuredProjects && featuredProjects.length > 0 ? (
+                  featuredProjects.map((p) => (
+                    <TableRow
+                      key={p.id}
+                      href={p.links?.live || `/projects/${p.id}`}
+                      title={p.name}
+                      subtitle={p.shortDesc || p.tagline || p.summary || ''}
+                      date=""
+                      external={Boolean(p.links?.live)}
+                    />
+                  ))
+                ) : (
+                  <p className="text-tertiary text-sm">
+                    No projects featured on main yet.
+                  </p>
+                )}
               </div>
             </SectionContent>
           </SectionContainer>
