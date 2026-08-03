@@ -21,7 +21,7 @@ const KNOWN_PROJECT_LINKS: Record<string, Project['links']> = {
   },
   somatv: {
     code: 'https://github.com/MGeovany/soma-tv',
-    live: 'https://soma-landing-two.vercel.app',
+    live: 'https://soma.thefndrs.com/',
   },
   allons: {
     code: 'https://github.com/FNDRS/allons-mobile',
