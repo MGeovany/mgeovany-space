@@ -8,6 +8,7 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import { Detail } from '@/components/list-detail/detail'
 import { TitleBar } from '@/components/list-detail/title-bar'
 import { toggleLogin } from '@/constants'
+import { LOCAL_PROJECTS, normalizeProjectName } from '@/data/projects'
 import { useSupabaseUser } from '@/hooks/useSupabaseUser'
 import { Project } from '@/types/project'
 
@@ -25,12 +26,16 @@ function SectionContent(props: any) {
 }
 
 interface TableRowProps {
-  href: string
+  href?: string
   title: string
   date: string
   subtitle?: string
   /** When false, use Link for same-tab navigation (e.g. /projects/id) */
   external?: boolean
+}
+
+type HomeProjectRow = TableRowProps & {
+  title: string
 }
 
 function TableRow({
@@ -46,7 +51,11 @@ function TableRow({
         {title}
       </strong>
       <span className="hidden flex-1 shrink border-t border-dashed border-neutral-900 sm:flex" />
-      {subtitle && <span className="text-tertiary flex-none">{subtitle}</span>}
+      {subtitle && (
+        <span className="text-tertiary flex-none text-left sm:max-w-md sm:text-right">
+          {subtitle}
+        </span>
+      )}
       {date && (
         <span className="text-quaternary flex-none font-mono">{date}</span>
       )}
@@ -54,6 +63,10 @@ function TableRow({
   )
   const className =
     'group flex flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-4'
+  if (!href) {
+    return <div className={className}>{content}</div>
+  }
+
   if (external) {
     return (
       <a
@@ -82,48 +95,23 @@ function SectionContainer(props: any) {
   )
 }
 
-/* 
-rojectos
-- [ ] My-space
-- [ ] Pausa
-- [ ] Lector
-- [ ] heyfrwrd
-- [ ] Store env
- */
+const latestProjects: HomeProjectRow[] = LOCAL_PROJECTS.reduce<
+  HomeProjectRow[]
+>((projects, project) => {
+  projects.push({
+    href: `/projects/${project.id}`,
+    title: project.name,
+    subtitle: project.shortDesc,
+    date: project.status === 'In progress' ? 'Now' : 'Latest',
+    external: false,
+  })
 
-const projects = [
-  {
-    href: '/',
-    title: 'My Space',
-    subtitle: 'Archive writings, projects, and bookmark awesome stuff.',
-  },
-  {
-    href: 'https://github.com/MGeovany/pausa',
-    title: 'Pausa',
-    subtitle: 'Pause your work and take a break.',
-  },
-  {
-    href: 'https://lector.thefndrs.com/',
-    title: 'Lector',
-    subtitle: 'Read your favorite books.',
-  },
-  {
-    href: 'https://www.heyfrwrd.me/',
-    title: 'Heyfrwrd',
-    subtitle: 'AI agent for Instagram sales.',
-  },
-  {
-    href: 'https://store-env.vercel.app/',
-    title: 'Store Env',
-    subtitle: 'Store environment variables for your projects.',
-  },
+  return projects
+}, [])
 
-  {
-    href: 'https://next-enterprise.thefndrs.com/',
-    title: 'FNDRS Next Enterprise Boilerplate',
-    subtitle: 'Boilerplate for Next.js enterprise projects.',
-  },
-]
+const latestProjectNames = new Set(
+  latestProjects.map((project) => normalizeProjectName(project.title))
+)
 
 const workHistory = [
   {
@@ -162,6 +150,24 @@ export function Intro({ featuredProjects }: IntroProps) {
   const { user } = useSupabaseUser()
   const titleRef = useRef<HTMLParagraphElement | null>(null)
   const scrollContainerRef = useRef(null)
+  const projectRows = (featuredProjects ?? []).reduce<HomeProjectRow[]>(
+    (projects, project) => {
+      if (latestProjectNames.has(normalizeProjectName(project.name))) {
+        return projects
+      }
+
+      projects.push({
+        href: project.links?.live || `/projects/${project.id}`,
+        title: project.name,
+        subtitle: project.shortDesc || project.tagline || project.summary || '',
+        date: '',
+        external: Boolean(project.links?.live),
+      })
+
+      return projects
+    },
+    [...latestProjects]
+  )
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -299,15 +305,15 @@ export function Intro({ featuredProjects }: IntroProps) {
             <SectionTitle>Projects</SectionTitle>
             <SectionContent>
               <div className="flex flex-col space-y-3">
-                {featuredProjects && featuredProjects.length > 0 ? (
-                  featuredProjects.map((p) => (
+                {projectRows.length > 0 ? (
+                  projectRows.map((p) => (
                     <TableRow
-                      key={p.id}
-                      href={p.links?.live || `/projects/${p.id}`}
-                      title={p.name}
-                      subtitle={p.shortDesc || p.tagline || p.summary || ''}
-                      date=""
-                      external={Boolean(p.links?.live)}
+                      key={p.title}
+                      href={p.href}
+                      title={p.title}
+                      subtitle={p.subtitle}
+                      date={p.date}
+                      external={p.external}
                     />
                   ))
                 ) : (

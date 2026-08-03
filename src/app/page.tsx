@@ -6,6 +6,8 @@ import { defaultSEO } from '@/config/seo'
 import { createClient } from '@/lib/supabase/server'
 import { Project } from '@/types/project'
 
+const hiddenFromHomeProjectNames = new Set(['tabularis', 'sentra cli', 'pausa'])
+
 function dbRowToProject(row: any): Project {
   return {
     id: row.id,
@@ -69,7 +71,20 @@ export default async function Home() {
     )
     .eq('show_on_home', true)
     .order('created_at', { ascending: false })
-  const featuredProjects = error || !data ? [] : data.map(dbRowToProject)
+  const featuredProjects =
+    error || !data
+      ? []
+      : data.reduce<Project[]>((projects, row) => {
+          const project = dbRowToProject(row)
+          const projectName = project.name?.trim().toLowerCase()
+
+          if (projectName && hiddenFromHomeProjectNames.has(projectName)) {
+            return projects
+          }
+
+          projects.push(project)
+          return projects
+        }, [])
 
   return (
     <ListDetailView

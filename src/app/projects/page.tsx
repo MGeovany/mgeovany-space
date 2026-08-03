@@ -1,4 +1,5 @@
 import { ProjectsExplorer } from '@/components/projects/projects-explorer'
+import { LOCAL_PROJECTS, mergeWithLocalProjects } from '@/data/projects'
 import { createClient } from '@/lib/supabase/server'
 import { Project } from '@/types/project'
 
@@ -71,10 +72,10 @@ export default async function Projects() {
 
   if (error) {
     console.error('[projects][page] Error:', error)
-    return <ProjectsExplorer projects={[]} />
+    return <ProjectsExplorer projects={LOCAL_PROJECTS} />
   }
 
-  const projects = (data || []).map(dbRowToProject)
+  const projects = mergeWithLocalProjects((data || []).map(dbRowToProject))
 
   return <ProjectsExplorer projects={projects} />
 }

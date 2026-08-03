@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 import { ProjectDetailContent } from '@/components/projects/project-detail-content'
+import { getProjectById, mergeWithLocalProjects } from '@/data/projects'
 import { createClient } from '@/lib/supabase/server'
 import { Project } from '@/types/project'
 
@@ -79,15 +80,23 @@ export async function generateMetadata({
     .eq('id', params.id)
     .single()
 
-  if (!data) {
+  const localProject = getProjectById(params.id)
+
+  if (!data && !localProject) {
     return {
       title: 'Project not found',
     }
   }
 
-  const title = data.name || 'Project'
+  const title = data?.name || localProject?.name || 'Project'
   const description =
-    data.summary || data.tagline || data.motivation || 'A project by mgeovany'
+    data?.summary ||
+    data?.tagline ||
+    data?.motivation ||
+    localProject?.summary ||
+    localProject?.tagline ||
+    localProject?.motivation ||
+    'A project by mgeovany'
 
   return {
     title,
@@ -119,21 +128,29 @@ export async function generateMetadata({
 export default async function Page({ params }: { params: { id: string } }) {
   const supabase = await createClient()
 
-  const [{ data: projectData, error }, { data: allIds }] = await Promise.all([
-    supabase.from('projects').select('*').eq('id', params.id).single(),
-    supabase
-      .from('projects')
-      .select('id')
-      .neq('status', 'Archived')
-      .order('created_at', { ascending: false }),
-  ])
+  const [{ data: projectData, error }, { data: allProjectRows }] =
+    await Promise.all([
+      supabase.from('projects').select('*').eq('id', params.id).single(),
+      supabase
+        .from('projects')
+        .select('*')
+        .neq('status', 'Archived')
+        .order('created_at', { ascending: false }),
+    ])
 
-  if (projectData == null || error) {
+  const project =
+    projectData == null || error
+      ? getProjectById(params.id)
+      : dbRowToProject(projectData)
+
+  if (!project) {
     return notFound()
   }
 
-  const project = dbRowToProject(projectData)
-  const ids = (allIds || []).map((r) => r.id)
+  const dbProjects = (allProjectRows || []).map(dbRowToProject)
+  const ids = mergeWithLocalProjects(dbProjects).map(
+    (currentProject) => currentProject.id
+  )
   const currentIndex = ids.indexOf(params.id)
   const prevId = currentIndex > 0 ? ids[currentIndex - 1] : null
   const nextId =
