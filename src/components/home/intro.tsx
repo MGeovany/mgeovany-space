@@ -52,7 +52,7 @@ function TableRow({
       </strong>
       <span className="hidden flex-1 shrink border-t border-dashed border-neutral-900 sm:flex" />
       {subtitle && (
-        <span className="text-tertiary flex-none text-left sm:max-w-md sm:text-right">
+        <span className="text-tertiary max-w-full truncate text-left sm:max-w-md sm:text-right">
           {subtitle}
         </span>
       )}
@@ -95,13 +95,26 @@ function SectionContainer(props: any) {
   )
 }
 
+const homeProjectSubtitles = new Map([
+  ['rivalo-ios', 'Sports energy, closer from your phone.'],
+  ['soma-tv', 'A calmer remote for the screens at home.'],
+  ['nocturne-extension', 'A browser tool shaped by persistence.'],
+  ['personal-finance-ios', 'A calmer way to face money.'],
+])
+
 const latestProjects: HomeProjectRow[] = LOCAL_PROJECTS.reduce<
   HomeProjectRow[]
 >((projects, project) => {
+  const subtitle = homeProjectSubtitles.get(project.id)
+
+  if (!subtitle) {
+    return projects
+  }
+
   projects.push({
     href: `/projects/${project.id}`,
     title: project.name,
-    subtitle: project.shortDesc,
+    subtitle,
     date: project.status === 'In progress' ? 'Now' : 'Latest',
     external: false,
   })
