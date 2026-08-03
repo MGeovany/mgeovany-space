@@ -5,6 +5,7 @@ import { ProjectDetailContent } from '@/components/projects/project-detail-conte
 import {
   getProjectById,
   isPausedProjectName,
+  mergeKnownProjectLinks,
   mergeWithLocalProjects,
 } from '@/data/projects'
 import { createClient } from '@/lib/supabase/server'
@@ -44,10 +45,10 @@ function dbRowToProject(row: any): Project {
     summary: row.summary || undefined,
     shortDesc: row.short_desc || undefined,
     showOnHome: Boolean(row.show_on_home),
-    links: {
+    links: mergeKnownProjectLinks(row.name, {
       code: row.code_link || undefined,
       live: row.live_link || undefined,
-    },
+    }),
     tech: {
       stack: row.tech_stack || [],
       stackGroups: row.tech_stack_groups || undefined,

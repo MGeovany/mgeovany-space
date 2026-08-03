@@ -14,6 +14,54 @@ const PAUSED_PROJECT_NAMES = new Set([
   'tabularis',
 ])
 
+const KNOWN_PROJECT_LINKS: Record<string, Project['links']> = {
+  rivaloios: {
+    code: 'https://github.com/MGeovany/rivalo-ios',
+    live: 'https://rivalo-landing.vercel.app',
+  },
+  somatv: {
+    code: 'https://github.com/MGeovany/soma-tv',
+    live: 'https://soma-landing-two.vercel.app',
+  },
+  allons: {
+    code: 'https://github.com/FNDRS/allons-mobile',
+    live: 'https://allons-waitlist.vercel.app',
+  },
+  nocturneextension: {
+    code: 'https://github.com/MGeovany/nocturne-extension',
+    live: 'https://404am-landing.vercel.app',
+  },
+  mateo: {
+    code: 'https://github.com/MGeovany/mateo-game',
+    live: 'https://mgeovany.github.io/mateo-game/',
+  },
+  velkoztheme: {
+    code: 'https://github.com/MGeovany/velkoz-theme',
+  },
+  personalfinanceios: {
+    code: 'https://github.com/MGeovany/personal-finance-ios',
+  },
+  fintechdaylanding: {
+    code: 'https://github.com/MGeovany/fintech-day-landing',
+    live: 'https://fintech-day-landing.vercel.app',
+  },
+  pausa: {
+    code: 'https://github.com/MGeovany/pausa',
+  },
+  heyfrwrd: {
+    code: 'https://github.com/MGeovany/heyfrwrd-landing',
+    live: 'https://heyfrwrd-landing-mgeovanys-projects.vercel.app',
+  },
+  sentracli: {
+    code: 'https://github.com/MGeovany/sentra-monorepo',
+    live: 'https://sentra.thefndrs.com/',
+  },
+  tabularis: {
+    code: 'https://github.com/MGeovany/tabularis-web',
+    live: 'https://tabularis.thefndrs.com/',
+  },
+}
+
 export const LOCAL_PROJECTS: Project[] = [
   {
     id: 'rivalo-ios',
@@ -28,7 +76,7 @@ export const LOCAL_PROJECTS: Project[] = [
     status: 'In production',
     year: '2026',
     showOnHome: true,
-    links: {},
+    links: KNOWN_PROJECT_LINKS.rivaloios,
     tech: {
       stack: ['Swift', 'SwiftUI', 'TCA', 'Supabase', 'PostHog', 'watchOS'],
     },
@@ -46,7 +94,7 @@ export const LOCAL_PROJECTS: Project[] = [
     status: 'In production',
     year: '2026',
     showOnHome: true,
-    links: {},
+    links: KNOWN_PROJECT_LINKS.somatv,
     tech: {
       stack: ['Swift', 'SwiftUI', 'Swift Package Manager', 'WebSocket', 'SSDP'],
     },
@@ -64,7 +112,7 @@ export const LOCAL_PROJECTS: Project[] = [
     status: 'In production',
     year: '2026',
     showOnHome: true,
-    links: {},
+    links: KNOWN_PROJECT_LINKS.allons,
     tech: {
       stack: [
         'Expo',
@@ -89,7 +137,7 @@ export const LOCAL_PROJECTS: Project[] = [
     status: 'In production',
     year: '2026',
     showOnHome: true,
-    links: {},
+    links: KNOWN_PROJECT_LINKS.nocturneextension,
     tech: {
       stack: ['TypeScript', 'React', 'Vite', 'WebExtension API', 'Swift'],
     },
@@ -107,7 +155,7 @@ export const LOCAL_PROJECTS: Project[] = [
     status: 'In production',
     year: '2026',
     showOnHome: true,
-    links: {},
+    links: KNOWN_PROJECT_LINKS.mateo,
     tech: { stack: ['JavaScript', 'HTML', 'CSS', 'Node.js', 'Socket.IO'] },
   },
   {
@@ -123,7 +171,7 @@ export const LOCAL_PROJECTS: Project[] = [
     status: 'In production',
     year: '2026',
     showOnHome: true,
-    links: {},
+    links: KNOWN_PROJECT_LINKS.velkoztheme,
     tech: { stack: ['JavaScript', 'Node.js', 'VS Code Theme API', 'JSON'] },
   },
   {
@@ -139,7 +187,7 @@ export const LOCAL_PROJECTS: Project[] = [
     status: 'In progress',
     year: '2026',
     showOnHome: true,
-    links: {},
+    links: KNOWN_PROJECT_LINKS.personalfinanceios,
     tech: { stack: ['Swift', 'SwiftUI', 'XcodeGen', 'iOS'] },
   },
   {
@@ -155,7 +203,7 @@ export const LOCAL_PROJECTS: Project[] = [
     status: 'In progress',
     year: '2026',
     showOnHome: true,
-    links: {},
+    links: KNOWN_PROJECT_LINKS.fintechdaylanding,
     tech: {
       stack: [
         'Vite',
@@ -175,6 +223,18 @@ export function normalizeProjectName(name: string) {
 
 export function isPausedProjectName(name: string) {
   return PAUSED_PROJECT_NAMES.has(normalizeProjectName(name))
+}
+
+export function mergeKnownProjectLinks(
+  name: string,
+  links: Project['links']
+): Project['links'] {
+  const knownLinks = KNOWN_PROJECT_LINKS[normalizeProjectName(name)]
+
+  return {
+    code: links.code || knownLinks?.code,
+    live: links.live || knownLinks?.live,
+  }
 }
 
 export function mergeWithLocalProjects(projects: Project[]) {
