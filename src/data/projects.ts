@@ -17,7 +17,7 @@ const PAUSED_PROJECT_NAMES = new Set([
 const KNOWN_PROJECT_LINKS: Record<string, Project['links']> = {
   rivaloios: {
     code: 'https://github.com/MGeovany/rivalo-ios',
-    live: 'https://rivalo-landing.vercel.app',
+    live: 'https://rivalo.thefndrs.com/',
   },
   somatv: {
     code: 'https://github.com/MGeovany/soma-tv',
