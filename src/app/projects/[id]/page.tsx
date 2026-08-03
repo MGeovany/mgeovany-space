@@ -7,6 +7,7 @@ import {
   isPausedProjectName,
   mergeKnownProjectLinks,
   mergeWithLocalProjects,
+  sortProjectsForList,
 } from '@/data/projects'
 import { createClient } from '@/lib/supabase/server'
 import { Project } from '@/types/project'
@@ -153,7 +154,7 @@ export default async function Page({ params }: { params: { id: string } }) {
   }
 
   const dbProjects = (allProjectRows || []).map(dbRowToProject)
-  const ids = mergeWithLocalProjects(dbProjects).map(
+  const ids = sortProjectsForList(mergeWithLocalProjects(dbProjects)).map(
     (currentProject) => currentProject.id
   )
   const currentIndex = ids.indexOf(params.id)

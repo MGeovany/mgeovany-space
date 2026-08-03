@@ -4,6 +4,7 @@ import {
   LOCAL_PROJECTS,
   mergeKnownProjectLinks,
   mergeWithLocalProjects,
+  sortProjectsForList,
 } from '@/data/projects'
 import { createClient } from '@/lib/supabase/server'
 import { Project } from '@/types/project'
@@ -77,10 +78,12 @@ export default async function Projects() {
 
   if (error) {
     console.error('[projects][page] Error:', error)
-    return <ProjectsExplorer projects={LOCAL_PROJECTS} />
+    return <ProjectsExplorer projects={sortProjectsForList(LOCAL_PROJECTS)} />
   }
 
-  const projects = mergeWithLocalProjects((data || []).map(dbRowToProject))
+  const projects = sortProjectsForList(
+    mergeWithLocalProjects((data || []).map(dbRowToProject))
+  )
 
   return <ProjectsExplorer projects={projects} />
 }

@@ -1,13 +1,44 @@
 'use client'
 
-import { MutableRefObject, useRef } from 'react'
+import { MutableRefObject, useEffect, useRef } from 'react'
 
 import { TitleBar } from '@/components/list-detail/title-bar'
 import { ProjectListRow } from '@/components/projects/project-list-row'
 import { Project } from '@/types/project'
 
+const PROJECTS_SCROLL_KEY = 'projects-scroll-position'
+
 export function ProjectsExplorer({ projects }: { projects: Project[] }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current
+
+    if (!scrollContainer) {
+      return
+    }
+
+    const savedScroll = window.sessionStorage.getItem(PROJECTS_SCROLL_KEY)
+
+    if (savedScroll) {
+      window.requestAnimationFrame(() => {
+        scrollContainer.scrollTop = Number(savedScroll)
+      })
+    }
+
+    const saveScroll = () => {
+      window.sessionStorage.setItem(
+        PROJECTS_SCROLL_KEY,
+        String(scrollContainer.scrollTop)
+      )
+    }
+
+    scrollContainer.addEventListener('scroll', saveScroll, { passive: true })
+
+    return () => {
+      scrollContainer.removeEventListener('scroll', saveScroll)
+    }
+  }, [])
 
   return (
     <div

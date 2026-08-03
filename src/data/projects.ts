@@ -254,6 +254,24 @@ export function mergeWithLocalProjects(projects: Project[]) {
   return mergedProjects
 }
 
+export function sortProjectsForList(projects: Project[]) {
+  return projects.toSorted((projectA, projectB) => {
+    if (projectA.status === projectB.status) {
+      return 0
+    }
+
+    if (projectA.status === 'Paused') {
+      return 1
+    }
+
+    if (projectB.status === 'Paused') {
+      return -1
+    }
+
+    return 0
+  })
+}
+
 export function getProjectById(id: string) {
   return LOCAL_PROJECTS.find((project) => project.id === id)
 }
