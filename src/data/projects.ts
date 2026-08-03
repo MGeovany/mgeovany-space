@@ -66,13 +66,12 @@ export const LOCAL_PROJECTS: Project[] = [
   {
     id: 'rivalo-ios',
     name: 'Rivalo iOS',
-    tagline: 'Making match days feel closer from your phone.',
+    tagline: 'A mobile companion for amateur match tracking.',
     motivation:
-      'Rivalo iOS is inspired by the energy of real sports fans. I wanted to build something that carries the emotion of following a game, the small rituals around checking what is happening, and the feeling of being close to the action even when you are not there.',
+      'Rivalo iOS was created to make match tracking more accessible for players and local teams. The project focuses on the practical moments around a game: following activity, reviewing context, and keeping a record that is useful after the match ends.',
     summary:
-      'A mobile project shaped around sports, attention, and the excitement people bring to every match.',
-    shortDesc:
-      'Inspired by the energy of real sports fans and the idea of making match days feel closer from your phone.',
+      'A mobile product focused on sports participation, match context, and personal tracking.',
+    shortDesc: 'A practical iOS app for match context and sports tracking.',
     status: 'In production',
     year: '2026',
     showOnHome: true,
@@ -84,13 +83,12 @@ export const LOCAL_PROJECTS: Project[] = [
   {
     id: 'soma-tv',
     name: 'Soma TV',
-    tagline: 'A calmer shared-screen experience for home.',
+    tagline: 'A remote control app for LG and Samsung TVs.',
     motivation:
-      'Soma TV started from wanting a screen experience that feels useful without becoming noisy. I liked the idea of something that can live in a room with people, help them pay attention to what matters, and still feel calm instead of demanding.',
+      'Soma TV started because I lost my TV remote and kept postponing buying a replacement. I built an app that connects to LG and Samsung TVs over Wi-Fi using the ports and protocols they expose, so I can control the TV from my phone or Mac.',
     summary:
-      'A TV-focused project about presence, simplicity, and creating something people can comfortably share.',
-    shortDesc:
-      'Started from wanting a calmer shared-screen experience at home, something useful without feeling noisy.',
+      'An iOS and macOS remote control project for LG and Samsung TVs over Wi-Fi.',
+    shortDesc: 'A Wi-Fi remote control app for LG and Samsung TVs.',
     status: 'In production',
     year: '2026',
     showOnHome: true,
@@ -102,13 +100,12 @@ export const LOCAL_PROJECTS: Project[] = [
   {
     id: 'allons',
     name: 'Allons',
-    tagline: 'Helping people move from idea to action together.',
+    tagline: 'An events platform for organizers and attendees.',
     motivation:
-      'Allons comes from the feeling of getting people moving together. The inspiration was not just building another product, but turning a simple spark into something others can understand, join, and use in real life.',
-    summary:
-      'A project about momentum, collaboration, and making ideas feel possible sooner.',
+      'Allons was built around the operational needs of events: discovery, reservations, payments, staff workflows, and organizer visibility. The goal is to reduce friction for both attendees and providers.',
+    summary: 'A mobile event platform with attendee and provider flows.',
     shortDesc:
-      'Comes from the feeling of getting people moving together and turning a simple idea into something others can use.',
+      'An events platform for discovery, reservations, and organizer tools.',
     status: 'In production',
     year: '2026',
     showOnHome: true,
@@ -127,13 +124,12 @@ export const LOCAL_PROJECTS: Project[] = [
   {
     id: 'nocturne-extension',
     name: 'Nocturne Extension',
-    tagline: 'A useful browser extension shaped by persistence.',
+    tagline: 'A DevTools extension for network and console inspection.',
     motivation:
-      'Nocturne Extension was built from the desire to ship something genuinely useful. What makes it personal is the frustration of reaching the publishing step and feeling blocked because of where I am from. It bothers me that being from Honduras can become a barrier, and that frustration became part of the reason to keep building.',
+      'Nocturne Extension was built to make debugging browser requests and console output more structured. The project also reflects the difficulty of publishing developer tools when platform access can depend on country availability, including the limitations I face from Honduras.',
     summary:
-      'An extension project about usefulness, ownership, and the unfair friction that can appear when building from Honduras.',
-    shortDesc:
-      'Built to ship something useful, and it frustrates me that publishing an extension can be blocked just because I am from Honduras.',
+      'A browser extension for reviewing network requests, console logs, and debugging context.',
+    shortDesc: 'A DevTools extension for network and console debugging.',
     status: 'In production',
     year: '2026',
     showOnHome: true,
@@ -145,13 +141,11 @@ export const LOCAL_PROJECTS: Project[] = [
   {
     id: 'mateo',
     name: 'Mateo',
-    tagline: 'A playful project with a personal feeling.',
+    tagline: 'A small multiplayer card game.',
     motivation:
-      'Mateo is inspired by family, curiosity, and the joy of making something simple feel personal. I wanted it to carry a lighter feeling, the kind of project that reminds me that building is also about affection and play, not only work.',
-    summary:
-      'A personal project built around warmth, playfulness, and making a small idea feel alive.',
-    shortDesc:
-      'A playful project inspired by family, curiosity, and the joy of making something simple feel personal.',
+      'Mateo was built as a personal card game with simple rules and multiplayer support. The motivation was to turn a familiar, informal game idea into something playable in the browser.',
+    summary: 'A browser-based card game with a small real-time server.',
+    shortDesc: 'A browser card game with multiplayer support.',
     status: 'In production',
     year: '2026',
     showOnHome: true,
@@ -161,13 +155,12 @@ export const LOCAL_PROJECTS: Project[] = [
   {
     id: 'velkoz-theme',
     name: 'Velkoz Theme',
-    tagline: 'A workspace that feels like mine.',
+    tagline: 'A custom dark theme for VS Code.',
     motivation:
-      'Velkoz Theme came from wanting my tools to feel closer to my taste and my rhythm. When I spend hours building, the environment matters. This project is about shaping that space so it feels personal before the work even starts.',
+      'Velkoz Theme was created to define a consistent editor environment for daily development. The focus is on contrast, readability, and a color palette that works for long coding sessions.',
     summary:
-      'A theme project inspired by ownership, mood, and the small details that make a workspace feel right.',
-    shortDesc:
-      'Made because I like shaping a workspace that feels like mine before spending hours building inside it.',
+      'A VS Code theme with a dark palette, warm accents, and readable syntax colors.',
+    shortDesc: 'A custom VS Code theme focused on contrast and readability.',
     status: 'In production',
     year: '2026',
     showOnHome: true,
@@ -177,13 +170,12 @@ export const LOCAL_PROJECTS: Project[] = [
   {
     id: 'personal-finance-ios',
     name: 'Personal Finance iOS',
-    tagline: 'Building a healthier relationship with money.',
+    tagline: 'A personal finance app for planning and review.',
     motivation:
-      'Personal Finance iOS is something I am working on because I want money to feel less confusing and less heavy. The inspiration is not only tracking numbers, but creating a calmer way to understand habits, make better decisions, and remove shame from personal finance.',
+      'Personal Finance iOS is being built to make budgeting, debt tracking, and financial review easier to maintain. The project focuses on clear habits, recurring reviews, and practical planning rather than complex financial dashboards.',
     summary:
-      'An in-progress iOS project about clarity, calm, and making money feel easier to face.',
-    shortDesc:
-      'In progress, inspired by wanting a healthier relationship with money without shame or overcomplication.',
+      'An in-progress iOS app for budgets, debts, goals, and daily financial review.',
+    shortDesc: 'An iOS app for budgeting, debt tracking, and financial review.',
     status: 'In progress',
     year: '2026',
     showOnHome: true,
@@ -193,13 +185,13 @@ export const LOCAL_PROJECTS: Project[] = [
   {
     id: 'fintech-day-landing',
     name: 'Fintech Day Landing',
-    tagline: 'Making financial conversations feel more human.',
+    tagline: 'A landing page for Honduras Fintech Day.',
     motivation:
-      'Fintech Day Landing is something I am working on because financial products and events can easily feel distant or intimidating. The inspiration is to make that first impression feel more approachable, more human, and easier to trust.',
+      'Fintech Day Landing was created to present the event clearly: agenda, sponsors, registration, and event context. The work focuses on credibility, conversion, and making the information easy to navigate.',
     summary:
-      'An in-progress landing page about trust, clarity, and helping people feel welcome in financial conversations.',
+      'An event landing page with registration, agenda, sponsor sections, and attendee utilities.',
     shortDesc:
-      'In progress, inspired by making financial conversations feel more approachable, human, and easier to trust.',
+      'A landing page for event information, registration, and sponsors.',
     status: 'In progress',
     year: '2026',
     showOnHome: true,

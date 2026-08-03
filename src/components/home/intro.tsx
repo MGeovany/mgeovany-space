@@ -96,10 +96,10 @@ function SectionContainer(props: any) {
 }
 
 const homeProjectSubtitles = new Map([
-  ['rivalo-ios', 'Sports energy, closer from your phone.'],
-  ['soma-tv', 'A calmer remote for the screens at home.'],
-  ['nocturne-extension', 'A browser tool shaped by persistence.'],
-  ['personal-finance-ios', 'A calmer way to face money.'],
+  ['rivalo-ios', 'Match tracking for players and local teams.'],
+  ['soma-tv', 'Wi-Fi remote control for LG and Samsung TVs.'],
+  ['nocturne-extension', 'DevTools for requests and console output.'],
+  ['personal-finance-ios', 'Budgeting, debt tracking, and review.'],
 ])
 
 const latestProjects: HomeProjectRow[] = LOCAL_PROJECTS.reduce<
