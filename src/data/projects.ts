@@ -43,7 +43,7 @@ const KNOWN_PROJECT_LINKS: Record<string, Project['links']> = {
   },
   fintechdaylanding: {
     code: 'https://github.com/MGeovany/fintech-day-landing',
-    live: 'https://fintech-day-landing.vercel.app',
+    live: 'https://hondurasfintechday.com/',
   },
   pausa: {
     code: 'https://github.com/MGeovany/pausa',
