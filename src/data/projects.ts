@@ -25,7 +25,7 @@ const KNOWN_PROJECT_LINKS: Record<string, Project['links']> = {
   },
   allons: {
     code: 'https://github.com/FNDRS/allons-mobile',
-    live: 'https://allons-waitlist.vercel.app',
+    live: 'https://allonsapp.com/',
   },
   nocturneextension: {
     code: 'https://github.com/MGeovany/nocturne-extension',
