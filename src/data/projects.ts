@@ -29,7 +29,7 @@ const KNOWN_PROJECT_LINKS: Record<string, Project['links']> = {
   },
   nocturneextension: {
     code: 'https://github.com/MGeovany/nocturne-extension',
-    live: 'https://404am-landing.vercel.app',
+    live: 'https://404am.thefndrs.com/',
   },
   mateo: {
     code: 'https://github.com/MGeovany/mateo-game',
