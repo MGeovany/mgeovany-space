@@ -7,7 +7,7 @@ import { MutableRefObject, useRef } from 'react'
 
 import { GithubIcon } from '@/components/icons/shared'
 import { TitleBar } from '@/components/list-detail/title-bar'
-import { StackBadges } from '@/components/projects/project-ui'
+import { StackBadges, StatusBadge } from '@/components/projects/project-ui'
 import { Project } from '@/types/project'
 
 export function ProjectDetailContent({
@@ -53,9 +53,14 @@ export function ProjectDetailContent({
             <p className="my-4 text-sm text-neutral-500">{project.year}</p>
           ) : null}
 
-          <h1 className="mt-1 text-3xl font-semibold text-white md:text-4xl">
-            {project.name}
-          </h1>
+          <div className="mt-1 flex flex-wrap items-center gap-3">
+            <h1 className="text-3xl font-semibold text-white md:text-4xl">
+              {project.name}
+            </h1>
+            {project.status === 'Paused' ? (
+              <StatusBadge status={project.status} />
+            ) : null}
+          </div>
 
           {tagline ? (
             <p className="mt-4 text-base leading-relaxed text-neutral-600">

@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Intro } from '@/components/home/intro'
 import { ListDetailView } from '@/components/layouts'
 import { defaultSEO } from '@/config/seo'
+import { isPausedProjectName } from '@/data/projects'
 import { createClient } from '@/lib/supabase/server'
 import { Project } from '@/types/project'
 
@@ -14,7 +15,7 @@ function dbRowToProject(row: any): Project {
     name: row.name,
     motivation: row.motivation,
     tagline: row.tagline || undefined,
-    status: row.status,
+    status: isPausedProjectName(row.name) ? 'Paused' : row.status,
     year: row.year || undefined,
     summary: row.summary || undefined,
     shortDesc: row.short_desc || undefined,

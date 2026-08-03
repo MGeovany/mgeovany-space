@@ -7,6 +7,13 @@ export const PROJECT_STATUSES: ProjectStatus[] = [
   'Archived',
 ]
 
+const PAUSED_PROJECT_NAMES = new Set([
+  'pausa',
+  'heyfrwrd',
+  'sentracli',
+  'tabularis',
+])
+
 export const LOCAL_PROJECTS: Project[] = [
   {
     id: 'rivalo-ios',
@@ -22,7 +29,9 @@ export const LOCAL_PROJECTS: Project[] = [
     year: '2026',
     showOnHome: true,
     links: {},
-    tech: { stack: ['iOS'] },
+    tech: {
+      stack: ['Swift', 'SwiftUI', 'TCA', 'Supabase', 'PostHog', 'watchOS'],
+    },
   },
   {
     id: 'soma-tv',
@@ -38,7 +47,9 @@ export const LOCAL_PROJECTS: Project[] = [
     year: '2026',
     showOnHome: true,
     links: {},
-    tech: { stack: ['TV'] },
+    tech: {
+      stack: ['Swift', 'SwiftUI', 'Swift Package Manager', 'WebSocket', 'SSDP'],
+    },
   },
   {
     id: 'allons',
@@ -54,7 +65,16 @@ export const LOCAL_PROJECTS: Project[] = [
     year: '2026',
     showOnHome: true,
     links: {},
-    tech: { stack: ['Product'] },
+    tech: {
+      stack: [
+        'Expo',
+        'React Native',
+        'TypeScript',
+        'Supabase',
+        'NestJS',
+        'Prisma',
+      ],
+    },
   },
   {
     id: 'nocturne-extension',
@@ -70,7 +90,9 @@ export const LOCAL_PROJECTS: Project[] = [
     year: '2026',
     showOnHome: true,
     links: {},
-    tech: { stack: ['Extension'] },
+    tech: {
+      stack: ['TypeScript', 'React', 'Vite', 'WebExtension API', 'Swift'],
+    },
   },
   {
     id: 'mateo',
@@ -86,7 +108,7 @@ export const LOCAL_PROJECTS: Project[] = [
     year: '2026',
     showOnHome: true,
     links: {},
-    tech: { stack: ['Personal'] },
+    tech: { stack: ['JavaScript', 'HTML', 'CSS', 'Node.js', 'Socket.IO'] },
   },
   {
     id: 'velkoz-theme',
@@ -102,7 +124,7 @@ export const LOCAL_PROJECTS: Project[] = [
     year: '2026',
     showOnHome: true,
     links: {},
-    tech: { stack: ['Theme'] },
+    tech: { stack: ['JavaScript', 'Node.js', 'VS Code Theme API', 'JSON'] },
   },
   {
     id: 'personal-finance-ios',
@@ -118,7 +140,7 @@ export const LOCAL_PROJECTS: Project[] = [
     year: '2026',
     showOnHome: true,
     links: {},
-    tech: { stack: ['iOS'] },
+    tech: { stack: ['Swift', 'SwiftUI', 'XcodeGen', 'iOS'] },
   },
   {
     id: 'fintech-day-landing',
@@ -134,12 +156,25 @@ export const LOCAL_PROJECTS: Project[] = [
     year: '2026',
     showOnHome: true,
     links: {},
-    tech: { stack: ['Landing'] },
+    tech: {
+      stack: [
+        'Vite',
+        'JavaScript',
+        'Tailwind CSS',
+        'Three.js',
+        'Prisma',
+        'Supabase',
+      ],
+    },
   },
 ]
 
 export function normalizeProjectName(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]/g, '')
+}
+
+export function isPausedProjectName(name: string) {
+  return PAUSED_PROJECT_NAMES.has(normalizeProjectName(name))
 }
 
 export function mergeWithLocalProjects(projects: Project[]) {

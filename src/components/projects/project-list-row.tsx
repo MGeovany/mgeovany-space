@@ -3,6 +3,7 @@
 import { GlobeIcon } from 'lucide-react'
 import Link from 'next/link'
 
+import { StatusBadge } from '@/components/projects/project-ui'
 import { Project } from '@/types/project'
 
 import { GithubIcon } from '../icons/shared'
@@ -19,31 +20,39 @@ export function ProjectListRow({ project }: { project: Project }) {
   return (
     <div className="group py-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-        <Link href={`/projects/${project.id}`} className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-baseline gap-2">
-            <span className="text-base font-semibold tracking-tight text-white group-hover:underline sm:text-lg">
+            <Link
+              href={`/projects/${project.id}`}
+              className="text-base font-semibold tracking-tight text-white group-hover:underline sm:text-lg"
+            >
               {project.name}
-            </span>
+            </Link>
             {project.year ? (
               <span className="text-sm text-neutral-500">{project.year}</span>
             ) : null}
+            {project.status === 'Paused' ? (
+              <StatusBadge status={project.status} />
+            ) : null}
           </div>
-          {description ? (
-            <p className="mt-1.5 text-sm leading-relaxed text-neutral-400">
-              {description}
-            </p>
-          ) : null}
-          {stack.length > 0 ? (
-            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-neutral-500">
-              {visible.map((s) => (
-                <span key={s}>{s}</span>
-              ))}
-              {rest > 0 ? (
-                <span className="text-neutral-600">+{rest}</span>
-              ) : null}
-            </div>
-          ) : null}
-        </Link>
+          <Link href={`/projects/${project.id}`} className="block">
+            {description ? (
+              <p className="mt-1.5 text-sm leading-relaxed text-neutral-400">
+                {description}
+              </p>
+            ) : null}
+            {stack.length > 0 ? (
+              <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-neutral-500">
+                {visible.map((s) => (
+                  <span key={s}>{s}</span>
+                ))}
+                {rest > 0 ? (
+                  <span className="text-neutral-600">+{rest}</span>
+                ) : null}
+              </div>
+            ) : null}
+          </Link>
+        </div>
         <div className="mt-2 flex shrink-0 items-center gap-1 sm:mt-0">
           {code ? (
             <a

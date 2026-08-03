@@ -2,7 +2,11 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 import { ProjectDetailContent } from '@/components/projects/project-detail-content'
-import { getProjectById, mergeWithLocalProjects } from '@/data/projects'
+import {
+  getProjectById,
+  isPausedProjectName,
+  mergeWithLocalProjects,
+} from '@/data/projects'
 import { createClient } from '@/lib/supabase/server'
 import { Project } from '@/types/project'
 
@@ -35,7 +39,7 @@ function dbRowToProject(row: any): Project {
           }
         : undefined,
     nextSteps: row.next_steps || undefined,
-    status: row.status,
+    status: isPausedProjectName(row.name) ? 'Paused' : row.status,
     year: row.year || undefined,
     summary: row.summary || undefined,
     shortDesc: row.short_desc || undefined,

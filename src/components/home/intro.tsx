@@ -47,7 +47,7 @@ function TableRow({
 }: TableRowProps) {
   const content = (
     <>
-      <strong className="line-clamp-2 font-medium text-neutral-100 group-hover:text-blue-500 group-hover:underline">
+      <strong className="font-medium text-neutral-100 group-hover:text-blue-500 group-hover:underline sm:shrink-0">
         {title}
       </strong>
       <span className="hidden flex-1 shrink border-t border-dashed border-neutral-900 sm:flex" />
