@@ -96,10 +96,11 @@ function SectionContainer(props: any) {
 }
 
 const homeProjectSubtitles = new Map([
-  ['rivalo-ios', 'Football tracking with iPhone and Apple Watch.'],
+  ['allons', 'Events platform for attendees and organizers.'],
   ['soma-tv', 'Wi-Fi remote control for LG and Samsung TVs.'],
   ['nocturne-extension', 'DevTools for requests and console output.'],
   ['personal-finance-ios', 'Budgeting, debt tracking, and review.'],
+  ['fintech-day-landing', 'Landing page for Honduras Fintech Day.'],
 ])
 
 const latestProjects: HomeProjectRow[] = LOCAL_PROJECTS.reduce<
