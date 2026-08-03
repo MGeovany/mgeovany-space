@@ -96,7 +96,7 @@ function SectionContainer(props: any) {
 }
 
 const homeProjectSubtitles = new Map([
-  ['rivalo-ios', 'Match tracking for players and local teams.'],
+  ['rivalo-ios', 'Football tracking with iPhone and Apple Watch.'],
   ['soma-tv', 'Wi-Fi remote control for LG and Samsung TVs.'],
   ['nocturne-extension', 'DevTools for requests and console output.'],
   ['personal-finance-ios', 'Budgeting, debt tracking, and review.'],

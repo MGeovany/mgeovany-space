@@ -66,12 +66,13 @@ export const LOCAL_PROJECTS: Project[] = [
   {
     id: 'rivalo-ios',
     name: 'Rivalo iOS',
-    tagline: 'A mobile companion for amateur match tracking.',
+    tagline: 'A football performance tracker using iPhone and Apple Watch.',
     motivation:
-      'Rivalo iOS was created to make match tracking more accessible for players and local teams. The project focuses on the practical moments around a game: following activity, reviewing context, and keeping a record that is useful after the match ends.',
+      'Rivalo iOS started because I wanted to measure my own performance in football matches. I found a product on Amazon that solved part of the problem, but it was expensive and depended on extra hardware. I decided to use the Apple Watch instead and build a more accessible way to track match activity.',
     summary:
-      'A mobile product focused on sports participation, match context, and personal tracking.',
-    shortDesc: 'A practical iOS app for match context and sports tracking.',
+      'An iOS and Apple Watch project for tracking football match activity without extra hardware.',
+    shortDesc:
+      'A football tracker built around iPhone and Apple Watch instead of extra hardware.',
     status: 'In production',
     year: '2026',
     showOnHome: true,
