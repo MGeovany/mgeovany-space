@@ -131,25 +131,25 @@ const workHistory = [
     href: 'https://savvly.com',
     title: 'Savvly',
     subtitle: 'Software Engineer',
-    date: 'Jun 22 — Present',
+    date: 'Jun 22 - Present',
   },
   {
     title: 'OneTouch',
     href: 'https://www.linkedin.com/in/m-geovany/',
     subtitle: 'Frontend Developer',
-    date: 'Aug 23 — Jun 24',
+    date: 'Aug 23 - Jun 24',
   },
   {
     title: 'OnCorp',
     href: 'https://www.linkedin.com/in/m-geovany/',
     subtitle: 'Frontend Developer',
-    date: 'Nov 25 — Jan 26',
+    date: 'Nov 25 - Jan 26',
   },
   {
     title: 'FNDRS',
     href: 'https://thefndrs.com',
     subtitle: 'Founder',
-    date: 'Nov 24 — Present',
+    date: 'Nov 24 - Present',
   },
 ]
 
